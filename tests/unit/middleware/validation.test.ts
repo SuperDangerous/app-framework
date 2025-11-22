@@ -17,10 +17,10 @@ describe('Validation Middleware', () => {
       query: {}
     };
     mockRes = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn().mockReturnThis()
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn().mockReturnThis()
     };
-    mockNext = jest.fn();
+    mockNext = vi.fn();
   });
 
   describe('validate (body)', () => {

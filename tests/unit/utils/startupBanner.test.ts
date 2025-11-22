@@ -7,26 +7,26 @@ import * as fs from 'fs';
 import chalk from 'chalk';
 
 // Mock dependencies
-jest.mock('fs');
-jest.mock('chalk', () => {
+vi.mock('fs');
+vi.mock('chalk', () => {
   const chainableMock = {
-    cyan: jest.fn((text) => text),
-    green: jest.fn((text) => text),
-    yellow: jest.fn((text) => text),
-    blue: jest.fn((text) => text),
-    red: jest.fn((text) => text),
-    gray: jest.fn((text) => text),
-    white: jest.fn((text) => text),
+    cyan: vi.fn((text) => text),
+    green: vi.fn((text) => text),
+    yellow: vi.fn((text) => text),
+    blue: vi.fn((text) => text),
+    red: vi.fn((text) => text),
+    gray: vi.fn((text) => text),
+    white: vi.fn((text) => text),
     bold: {
-      cyan: jest.fn((text) => text),
-      green: jest.fn((text) => text),
-      yellow: jest.fn((text) => text),
-      blue: jest.fn((text) => text),
-      red: jest.fn((text) => text),
-      gray: jest.fn((text) => text),
-      white: jest.fn((text) => text)
+      cyan: vi.fn((text) => text),
+      green: vi.fn((text) => text),
+      yellow: vi.fn((text) => text),
+      blue: vi.fn((text) => text),
+      red: vi.fn((text) => text),
+      gray: vi.fn((text) => text),
+      white: vi.fn((text) => text)
     },
-    dim: jest.fn((text) => text),
+    dim: vi.fn((text) => text),
     level: 3
   };
   return {
@@ -37,13 +37,13 @@ jest.mock('chalk', () => {
 
 // Mock console.log
 const originalConsoleLog = console.log;
-const consoleLogSpy = jest.fn();
+const consoleLogSpy = vi.fn();
 
 describe('displayStartupBanner', () => {
-  const mockFs = fs as jest.Mocked<typeof fs>;
+  const mockFs = fs as vi.Mocked<typeof fs>;
   
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     console.log = consoleLogSpy;
     
     // Default mocks

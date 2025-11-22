@@ -3,48 +3,69 @@
  */
 
 // Mock winston-daily-rotate-file
-jest.mock('winston-daily-rotate-file', () => {
-  return jest.fn().mockImplementation(() => ({
-    on: jest.fn(),
-    log: jest.fn()
-  }));
-});
-
-// Mock dependencies BEFORE imports
-jest.mock('express', () => {
-  const mockApp = {
-    use: jest.fn(),
-    listen: jest.fn(),
-    set: jest.fn(),
-    get: jest.fn(),
-    post: jest.fn(),
-    put: jest.fn(),
-    delete: jest.fn()
-  };
-  const expressMock: any = jest.fn(() => mockApp);
-  expressMock.json = jest.fn(() => (req: any, res: any, next: any) => next());
-  expressMock.urlencoded = jest.fn(() => (req: any, res: any, next: any) => next());
-  expressMock.static = jest.fn(() => (req: any, res: any, next: any) => next());
-  return expressMock;
-});
-jest.mock('http');
-jest.mock('../../../src/services/websocketServer');
-jest.mock('../../../src/utils/startupBanner', () => ({
-  displayStartupBanner: jest.fn()
-}));
-jest.mock('../../../src/core/portUtils');
-jest.mock('../../../src/core', () => ({
-  ...jest.requireActual('../../../src/core'),
-  createLogger: jest.fn(() => ({
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn()
+vi.mock('winston-daily-rotate-file', () => ({
+  default: vi.fn().mockImplementation(() => ({
+    on: vi.fn(),
+    log: vi.fn()
   }))
 }));
 
+// Mock dependencies BEFORE imports
+vi.mock('express', () => {
+  const mockApp = {
+    use: vi.fn(),
+    listen: vi.fn(),
+    set: vi.fn(),
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn()
+  };
+  const expressMock: any = vi.fn(() => mockApp);
+  const json = vi.fn(() => (req: any, res: any, next: any) => next());
+  const urlencoded = vi.fn(() => (req: any, res: any, next: any) => next());
+  const staticFn = vi.fn(() => (req: any, res: any, next: any) => next());
+  const Router = vi.fn(() => ({}));
+  expressMock.json = json;
+  expressMock.urlencoded = urlencoded;
+  expressMock.static = staticFn;
+  expressMock.Router = Router;
+
+  return {
+    __esModule: true,
+    default: expressMock,
+    json,
+    urlencoded,
+    static: staticFn,
+    Router
+  };
+});
+vi.mock('http', () => {
+  const createServer = vi.fn();
+  return { createServer, default: { createServer } };
+});
+vi.mock('../../../src/services/websocketServer', () => ({
+  createWebSocketServer: vi.fn()
+}));
+vi.mock('../../../src/utils/startupBanner', () => ({
+  displayStartupBanner: vi.fn()
+}));
+vi.mock('../../../src/core/portUtils');
+vi.mock('../../../src/core', async () => {
+  const actual = await vi.importActual<typeof import('../../../src/core')>('../../../src/core');
+  return {
+    ...actual,
+    createLogger: vi.fn(() => ({
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn()
+    }))
+  };
+});
+
 import { StandardServer, StandardServerConfig } from '../../../src/core/StandardServer';
-import * as express from 'express';
+import express from 'express';
 import { createServer } from 'http';
 import { createWebSocketServer } from '../../../src/services/websocketServer';
 import { displayStartupBanner } from '../../../src/utils/startupBanner';
@@ -52,55 +73,55 @@ import { getProcessOnPort } from '../../../src/core/portUtils';
 import { createLogger } from '../../../src/core';
 
 const mockApp = {
-  use: jest.fn(),
-  get: jest.fn(),
-  listen: jest.fn(),
-  set: jest.fn(),
-  post: jest.fn(),
-  put: jest.fn(),
-  delete: jest.fn()
+  use: vi.fn(),
+  get: vi.fn(),
+  listen: vi.fn(),
+  set: vi.fn(),
+  post: vi.fn(),
+  put: vi.fn(),
+  delete: vi.fn()
 };
 
 const mockHttpServer: any = {
-  listen: jest.fn((_port: number, _host: string, callback: Function) => {
+  listen: vi.fn((_port: number, _host: string, callback: Function) => {
     callback();
   }),
-  close: jest.fn((callback?: Function) => {
+  close: vi.fn((callback?: Function) => {
     if (callback) callback();
   }),
-  on: jest.fn(),
-  address: jest.fn(() => ({ port: 8080, address: 'localhost' })),
-  setTimeout: jest.fn(),
+  on: vi.fn(),
+  address: vi.fn(() => ({ port: 8080, address: 'localhost' })),
+  setTimeout: vi.fn(),
   requestTimeout: 0,
   headersTimeout: 0,
   keepAliveTimeout: 0
 };
 
 const mockWsServer = {
-  close: jest.fn(),
-  shutdown: jest.fn()
+  close: vi.fn(),
+  shutdown: vi.fn()
 };
 
 const mockLogger = {
-  info: jest.fn(),
-  error: jest.fn(),
-  warn: jest.fn(),
-  debug: jest.fn()
+  info: vi.fn(),
+  error: vi.fn(),
+  warn: vi.fn(),
+  debug: vi.fn()
 };
 
 describe('StandardServer', () => {
   let servers: StandardServer[] = [];
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     servers = [];
 
-    (express as unknown as jest.Mock).mockReturnValue(mockApp);
-    (createServer as jest.Mock).mockReturnValue(mockHttpServer);
-    (createWebSocketServer as jest.Mock).mockResolvedValue(mockWsServer);
-    (displayStartupBanner as jest.Mock).mockReturnValue(undefined);
-    (getProcessOnPort as jest.Mock).mockResolvedValue(null);
-    (createLogger as jest.Mock).mockReturnValue(mockLogger);
+    (express as unknown as vi.Mock).mockReturnValue(mockApp);
+    (createServer as vi.Mock).mockReturnValue(mockHttpServer);
+    (createWebSocketServer as vi.Mock).mockResolvedValue(mockWsServer);
+    (displayStartupBanner as vi.Mock).mockReturnValue(undefined);
+    (getProcessOnPort as vi.Mock).mockResolvedValue(null);
+    (createLogger as vi.Mock).mockReturnValue(mockLogger);
 
     // Reset default listen implementation between tests
     mockHttpServer.listen.mockImplementation(
@@ -161,7 +182,7 @@ describe('StandardServer', () => {
 
   describe('initialize', () => {
     test('initializes server successfully', async () => {
-      const onInitialize = jest.fn().mockResolvedValue(undefined);
+      const onInitialize = vi.fn().mockResolvedValue(undefined);
       const config: StandardServerConfig = {
         appName: 'TestApp',
         appVersion: '1.0.0',
@@ -177,7 +198,7 @@ describe('StandardServer', () => {
     });
 
     test('skips initialization if already initialized', async () => {
-      const onInitialize = jest.fn();
+      const onInitialize = vi.fn();
       const config: StandardServerConfig = {
         appName: 'TestApp',
         appVersion: '1.0.0',
@@ -193,7 +214,7 @@ describe('StandardServer', () => {
     });
 
     test('handles initialization errors', async () => {
-      const onInitialize = jest.fn().mockRejectedValue(new Error('Init failed'));
+      const onInitialize = vi.fn().mockRejectedValue(new Error('Init failed'));
       const config: StandardServerConfig = {
         appName: 'TestApp',
         appVersion: '1.0.0',
@@ -210,7 +231,7 @@ describe('StandardServer', () => {
 
   describe('start', () => {
     test('starts server successfully', async () => {
-      const onStart = jest.fn().mockResolvedValue(undefined);
+      const onStart = vi.fn().mockResolvedValue(undefined);
       const config: StandardServerConfig = {
         appName: 'TestApp',
         appVersion: '1.0.0',
@@ -264,7 +285,7 @@ describe('StandardServer', () => {
     });
 
     test('handles port conflicts', async () => {
-      (getProcessOnPort as jest.Mock).mockResolvedValue({
+      (getProcessOnPort as vi.Mock).mockResolvedValue({
         pid: 1234,
         command: 'node',
         port: 8080
@@ -462,7 +483,7 @@ describe('StandardServer', () => {
         appVersion: '1.0.0'
       };
 
-      const processSpy = jest.spyOn(process, 'on');
+      const processSpy = vi.spyOn(process, 'on');
       
       const server = new StandardServer(config);
       servers.push(server);

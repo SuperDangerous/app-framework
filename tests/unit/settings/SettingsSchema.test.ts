@@ -626,7 +626,7 @@ describe('Settings Schema System', () => {
 
         // Suppress console.error for this test
         const originalError = console.error;
-        console.error = jest.fn();
+        console.error = vi.fn();
         
         // Should return true and not throw
         expect(evaluateFieldVisibility(field, {})).toBe(true);

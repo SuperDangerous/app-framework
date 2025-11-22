@@ -12,58 +12,60 @@ import {
 } from '../../../src/services/aiService';
 
 // Mock winston-daily-rotate-file
-jest.mock('winston-daily-rotate-file', () => {
-  return jest.fn().mockImplementation(() => ({
-    on: jest.fn(),
-    log: jest.fn()
-  }));
-});
+vi.mock('winston-daily-rotate-file', () => ({
+  default: vi.fn().mockImplementation(() => ({
+    on: vi.fn(),
+    log: vi.fn()
+  }))
+}));
 
 // Mock dependencies
-jest.mock('../../../src/core', () => ({
-  ...jest.requireActual('../../../src/core'),
-  createLogger: jest.fn(() => ({
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn()
+vi.mock('../../../src/core', async () => {
+  const actual = await vi.importActual<typeof import('../../../src/core')>('../../../src/core');
+  return {
+    ...actual,
+    createLogger: vi.fn(() => ({
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn()
+    }))
+  };
+});
+
+vi.mock('../../../src/core/storageService', () => ({
+  getStorageService: vi.fn(() => ({
+    saveFile: vi.fn()
   }))
 }));
 
-jest.mock('../../../src/core/storageService', () => ({
-  getStorageService: jest.fn(() => ({
-    saveFile: jest.fn()
-  }))
-}));
-
-jest.mock('node:crypto', () => ({
-  createHash: jest.fn(() => ({
-    update: jest.fn().mockReturnThis(),
-    digest: jest.fn(() => 'mock-hash-1234567890abcdef')
+vi.mock('node:crypto', () => ({
+  createHash: vi.fn(() => ({
+    update: vi.fn().mockReturnThis(),
+    digest: vi.fn(() => 'mock-hash-1234567890abcdef')
   }))
 }));
 
 // Mock OpenAI
-jest.mock('openai', () => {
-  return jest.fn().mockImplementation(() => {
-    return {
-      chat: {
-        completions: {
-          create: jest.fn().mockResolvedValue({
-            choices: [{ message: { content: 'Mock response', role: 'assistant' } }],
-            usage: { total_tokens: 150, prompt_tokens: 75, completion_tokens: 75 },
-          }),
-        },
-      },
+vi.mock('openai', () => {
+  class OpenAI {
+    chat = {
+      completions: {
+        create: vi.fn().mockResolvedValue({
+          choices: [{ message: { content: 'Mock response', role: 'assistant' } }],
+          usage: { total_tokens: 150, prompt_tokens: 75, completion_tokens: 75 }
+        })
+      }
     };
-  });
+  }
+  return { __esModule: true, default: OpenAI, OpenAI };
 });
 
 describe('AIService', () => {
   let aiService: AIService;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     aiService = new AIService();
   });
 
@@ -202,8 +204,8 @@ describe('AIService', () => {
     });
 
     test('emits analysis events', async () => {
-      const startListener = jest.fn();
-      const completeListener = jest.fn();
+      const startListener = vi.fn();
+      const completeListener = vi.fn();
       
       aiService.on('analysis:start', startListener);
       aiService.on('analysis:complete', completeListener);
@@ -228,7 +230,7 @@ describe('AIService', () => {
     });
 
     test('emits error event on failure', async () => {
-      const errorListener = jest.fn();
+      const errorListener = vi.fn();
       aiService.on('analysis:error', errorListener);
 
       // Register a provider that will fail
@@ -241,7 +243,7 @@ describe('AIService', () => {
       // Mock the provider to throw an error
       const failingProvider = aiService['providers'].get('failing-provider');
       if (failingProvider) {
-        jest.spyOn(failingProvider, 'analyze').mockRejectedValue(new Error('Mock failure'));
+        vi.spyOn(failingProvider, 'analyze').mockRejectedValue(new Error('Mock failure'));
       }
 
       try {
@@ -310,8 +312,8 @@ describe('AIService', () => {
     });
 
     test('emits chat events', async () => {
-      const startListener = jest.fn();
-      const completeListener = jest.fn();
+      const startListener = vi.fn();
+      const completeListener = vi.fn();
       
       aiService.on('chat:start', startListener);
       aiService.on('chat:complete', completeListener);

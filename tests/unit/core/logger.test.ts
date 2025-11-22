@@ -13,40 +13,40 @@ import os from 'os';
 import { Readable } from 'stream';
 import { pipeline as pipelineOriginal } from 'stream/promises';
 
-jest.mock('stream/promises', () => ({
-  pipeline: jest.fn().mockResolvedValue(undefined)
+vi.mock('stream/promises', () => ({
+  pipeline: vi.fn().mockResolvedValue(undefined)
 }));
 
 // Mock fs modules
-jest.mock('fs/promises');
-jest.mock('fs');
+vi.mock('fs/promises');
+vi.mock('fs');
 
 describe('Logger Service', () => {
   let logger: ReturnType<typeof createLogger>;
   const testLogsDir = path.join(os.tmpdir(), 'test-logs');
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     logger = createLogger('TestLogger');
     
     // Mock filesystem operations
-    (existsSync as jest.Mock).mockReturnValue(true);
-    (fs.readdir as jest.Mock).mockResolvedValue(['app-2024-01-01.log']);
-    (fs.readFile as jest.Mock).mockResolvedValue('[{"message":"Test"}]');
-    (fs.unlink as jest.Mock).mockResolvedValue(undefined);
-    (fs.stat as jest.Mock).mockResolvedValue({ 
+    (existsSync as vi.Mock).mockReturnValue(true);
+    (fs.readdir as vi.Mock).mockResolvedValue(['app-2024-01-01.log']);
+    (fs.readFile as vi.Mock).mockResolvedValue('[{"message":"Test"}]');
+    (fs.unlink as vi.Mock).mockResolvedValue(undefined);
+    (fs.stat as vi.Mock).mockResolvedValue({ 
       size: 1024, 
       mtime: new Date(),
       isFile: () => true,
       isDirectory: () => false
     });
-    (createReadStream as jest.Mock).mockReturnValue(Readable.from(['log']));
-    (createWriteStream as jest.Mock).mockReturnValue({
-      on: jest.fn(),
-      end: jest.fn(),
-      write: jest.fn()
+    (createReadStream as vi.Mock).mockReturnValue(Readable.from(['log']));
+    (createWriteStream as vi.Mock).mockReturnValue({
+      on: vi.fn(),
+      end: vi.fn(),
+      write: vi.fn()
     });
-    (pipelineOriginal as unknown as jest.Mock).mockResolvedValue(undefined);
+    (pipelineOriginal as unknown as vi.Mock).mockResolvedValue(undefined);
   });
 
   describe('Core Functionality', () => {
@@ -167,8 +167,8 @@ describe('Logger Service', () => {
           'app-2024-01-03.log'
         ];
         
-        (fs.readdir as jest.Mock).mockResolvedValue(mockFiles);
-        (fs.stat as jest.Mock).mockImplementation((filePath) => {
+        (fs.readdir as vi.Mock).mockResolvedValue(mockFiles);
+        (fs.stat as vi.Mock).mockImplementation((filePath) => {
           const fileName = path.basename(filePath);
           const size = fileName.includes('01-02') ? 0 : 1024;
           
@@ -180,7 +180,7 @@ describe('Logger Service', () => {
           });
         });
         
-        (fs.unlink as jest.Mock).mockResolvedValue(undefined);
+        (fs.unlink as vi.Mock).mockResolvedValue(undefined);
         
         const result = await mainLogger.cleanupZeroFiles();
         
@@ -191,8 +191,8 @@ describe('Logger Service', () => {
       });
 
       test('handles no zero-length files', async () => {
-        (fs.readdir as jest.Mock).mockResolvedValue(['app-2024-01-01.log']);
-        (fs.stat as jest.Mock).mockResolvedValue({
+        (fs.readdir as vi.Mock).mockResolvedValue(['app-2024-01-01.log']);
+        (fs.stat as vi.Mock).mockResolvedValue({
           size: 1024,
           mtime: new Date(),
           isFile: () => true,
@@ -213,8 +213,8 @@ describe('Logger Service', () => {
           'error-2024-01-01.log'
         ];
         
-        (fs.readdir as jest.Mock).mockResolvedValue(mockFiles);
-        (fs.unlink as jest.Mock).mockResolvedValue(undefined);
+        (fs.readdir as vi.Mock).mockResolvedValue(mockFiles);
+        (fs.unlink as vi.Mock).mockResolvedValue(undefined);
         
         await mainLogger.purgeAllLogs();
         
@@ -222,7 +222,7 @@ describe('Logger Service', () => {
       });
 
       test('handles empty logs directory', async () => {
-        (fs.readdir as jest.Mock).mockResolvedValue([]);
+        (fs.readdir as vi.Mock).mockResolvedValue([]);
         
         await expect(mainLogger.purgeAllLogs()).resolves.not.toThrow();
       });
@@ -269,11 +269,11 @@ describe('Logger Service', () => {
         const mockLogFiles = ['app-2024-01-01.log', 'app-2024-01-02.log'];
         const mockArchiveFiles = ['archive-2023-12-01.tar.gz'];
         
-        (fs.readdir as jest.Mock)
+        (fs.readdir as vi.Mock)
           .mockResolvedValueOnce(mockLogFiles)
           .mockResolvedValueOnce(mockArchiveFiles);
         
-        (existsSync as jest.Mock).mockReturnValue(true);
+        (existsSync as vi.Mock).mockReturnValue(true);
         
         const result = await mainLogger.getAllLogFiles();
         
@@ -282,8 +282,8 @@ describe('Logger Service', () => {
       });
 
       test('handles missing archives directory', async () => {
-        (fs.readdir as jest.Mock).mockResolvedValueOnce(['app-2024-01-01.log']);
-        (existsSync as jest.Mock).mockReturnValue(false);
+        (fs.readdir as vi.Mock).mockResolvedValueOnce(['app-2024-01-01.log']);
+        (existsSync as vi.Mock).mockReturnValue(false);
         
         const result = await mainLogger.getAllLogFiles();
         
@@ -307,11 +307,11 @@ describe('Logger Service', () => {
           'app-2024-01-02.log'
         ];
         
-        (fs.readdir as jest.Mock).mockResolvedValue(mockFiles);
-        (fs.readFile as jest.Mock).mockResolvedValue('log content');
-        (fs.writeFile as jest.Mock).mockResolvedValue(undefined);
-        (fs.unlink as jest.Mock).mockResolvedValue(undefined);
-        (fs.mkdir as jest.Mock).mockResolvedValue(undefined);
+        (fs.readdir as vi.Mock).mockResolvedValue(mockFiles);
+        (fs.readFile as vi.Mock).mockResolvedValue('log content');
+        (fs.writeFile as vi.Mock).mockResolvedValue(undefined);
+        (fs.unlink as vi.Mock).mockResolvedValue(undefined);
+        (fs.mkdir as vi.Mock).mockResolvedValue(undefined);
         
         const result = await mainLogger.archiveLogs(30);
         
@@ -322,8 +322,8 @@ describe('Logger Service', () => {
     describe('downloadLogFile', () => {
       test('reads and returns log file content', async () => {
         const testContent = 'Test log content';
-        (fs.readFile as jest.Mock).mockResolvedValue(testContent);
-        (existsSync as jest.Mock).mockReturnValue(true);
+        (fs.readFile as vi.Mock).mockResolvedValue(testContent);
+        (existsSync as vi.Mock).mockReturnValue(true);
         
         const result = await mainLogger.downloadLogFile('app-2024-01-01.log');
         
@@ -331,7 +331,7 @@ describe('Logger Service', () => {
       });
 
       test('returns null for non-existent file', async () => {
-        (existsSync as jest.Mock).mockReturnValue(false);
+        (existsSync as vi.Mock).mockReturnValue(false);
         
         const result = await mainLogger.downloadLogFile('non-existent.log');
         expect(result).toBeNull();
@@ -376,7 +376,7 @@ describe('Logger Service', () => {
   describe('Error Handling', () => {
     test('handles file read errors gracefully', async () => {
       const mainLogger = getLogger;
-      (fs.readdir as jest.Mock).mockRejectedValue(new Error('Read error'));
+      (fs.readdir as vi.Mock).mockRejectedValue(new Error('Read error'));
       
       const stats = await mainLogger.getLogStats();
       
@@ -386,7 +386,7 @@ describe('Logger Service', () => {
 
     test('handles archive errors gracefully', async () => {
       const mainLogger = getLogger;
-      (fs.readdir as jest.Mock).mockRejectedValue(new Error('Archive error'));
+      (fs.readdir as vi.Mock).mockRejectedValue(new Error('Archive error'));
       
       await mainLogger.archiveLogs(30);
       
@@ -395,7 +395,7 @@ describe('Logger Service', () => {
 
     test('handles export errors gracefully', async () => {
       const mainLogger = getLogger;
-      jest.spyOn(mainLogger, 'getRecentLogs').mockRejectedValue(new Error('Export error'));
+      vi.spyOn(mainLogger, 'getRecentLogs').mockRejectedValue(new Error('Export error'));
       
       const result = await mainLogger.exportLogs({ format: 'json' });
       expect(result).toContain('message');

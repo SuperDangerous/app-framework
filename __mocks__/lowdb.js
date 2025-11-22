@@ -1,3 +1,6 @@
-const Low = jest.fn();
+import { vi } from 'vitest';
 
-module.exports = { Low };
+// Simple vitest-friendly mock for lowdb
+const Low = vi.fn();
+
+export { Low };

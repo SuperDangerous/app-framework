@@ -5,10 +5,21 @@
 
 import { setupTestServer, teardownTestServer, getTestServer } from '../src/testing/TestServer';
 import type { TestServer } from '../src/testing/TestServer';
+import { beforeAll, afterAll, vi } from 'vitest';
 
 // Global test configuration
 global.API_BASE = 'http://localhost:5174';
 global.TEST_TIMEOUT = 5000;
+
+// Compatibility layer: alias jest -> vi for legacy tests/mocks
+// vitest hoists vi.mock; providing requireActual/importMock aliases keeps old patterns working.
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+global.jest = Object.assign(vi, {
+  // provide requireActual/requireMock aliases
+  requireActual: vi.importActual,
+  requireMock: vi.importMock,
+});
 
 // Extend global namespace for TypeScript
 declare global {
@@ -20,8 +31,13 @@ declare global {
   };
 }
 
-// Jest global setup
+// Global setup for integration tests
+const shouldStartServer = process.env.SKIP_TEST_SERVER !== '1';
+
 beforeAll(async () => {
+  if (!shouldStartServer) {
+    return;
+  }
   await setupTestServer({
     entryPoint: 'src/index.ts',
     port: 5174,
@@ -30,10 +46,13 @@ beforeAll(async () => {
     startupTimeout: 15000,
     silent: true
   });
-}, 20000);
+});
 
-// Jest global teardown
+// Global teardown
 afterAll(async () => {
+  if (!shouldStartServer) {
+    return;
+  }
   await teardownTestServer();
 });
 

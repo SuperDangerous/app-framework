@@ -8,37 +8,40 @@ import * as fs from 'fs';
 import * as net from 'net';
 
 // Mock winston-daily-rotate-file
-jest.mock('winston-daily-rotate-file', () => {
-  return jest.fn().mockImplementation(() => ({
-    on: jest.fn(),
-    log: jest.fn()
-  }));
-});
-
-// Mock dependencies
-jest.mock('os');
-jest.mock('fs');
-jest.mock('net');
-
-// Mock the logger
-jest.mock('../../../src/core', () => ({
-  ...jest.requireActual('../../../src/core'),
-  createLogger: jest.fn(() => ({
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn()
+vi.mock('winston-daily-rotate-file', () => ({
+  default: vi.fn().mockImplementation(() => ({
+    on: vi.fn(),
+    log: vi.fn()
   }))
 }));
 
+// Mock dependencies
+vi.mock('os');
+vi.mock('fs');
+vi.mock('net');
+
+// Mock the logger
+vi.mock('../../../src/core', async () => {
+  const actual = await vi.importActual<typeof import('../../../src/core')>('../../../src/core');
+  return {
+    ...actual,
+    createLogger: vi.fn(() => ({
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn()
+    }))
+  };
+});
+
 describe('NetworkService', () => {
   let networkService: NetworkService;
-  const mockOs = os as jest.Mocked<typeof os>;
-  const mockFs = fs as jest.Mocked<typeof fs>;
-  const mockNet = net as jest.Mocked<typeof net>;
+  const mockOs = os as vi.Mocked<typeof os>;
+  const mockFs = fs as vi.Mocked<typeof fs>;
+  const mockNet = net as vi.Mocked<typeof net>;
   
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     networkService = new NetworkService();
   });
 
@@ -231,9 +234,9 @@ describe('NetworkService', () => {
   describe('isPortAvailable', () => {
     test('checks if port is available', async () => {
       const mockServer = {
-        listen: jest.fn((port, callback) => callback()),
-        close: jest.fn((callback) => callback()),
-        on: jest.fn()
+        listen: vi.fn((port, callback) => callback()),
+        close: vi.fn((callback) => callback()),
+        on: vi.fn()
       };
       
       mockNet.createServer.mockReturnValue(mockServer as any);
@@ -247,13 +250,13 @@ describe('NetworkService', () => {
 
     test('returns false when port is in use', async () => {
       const mockServer = {
-        listen: jest.fn((port, callback) => {
+        listen: vi.fn((port, callback) => {
           const error: any = new Error('Port in use');
           error.code = 'EADDRINUSE';
           mockServer.on.mock.calls[0][1](error);
         }),
-        close: jest.fn(),
-        on: jest.fn()
+        close: vi.fn(),
+        on: vi.fn()
       };
       
       mockNet.createServer.mockReturnValue(mockServer as any);
@@ -268,7 +271,7 @@ describe('NetworkService', () => {
     test('finds first available port in range', async () => {
       let attempts = 0;
       const mockServer = {
-        listen: jest.fn((port, callback) => {
+        listen: vi.fn((port, callback) => {
           if (attempts < 2) {
             attempts++;
             const error: any = new Error('Port in use');
@@ -278,8 +281,8 @@ describe('NetworkService', () => {
             callback();
           }
         }),
-        close: jest.fn((callback) => callback && callback()),
-        on: jest.fn()
+        close: vi.fn((callback) => callback && callback()),
+        on: vi.fn()
       };
       
       mockNet.createServer.mockReturnValue(mockServer as any);
@@ -291,13 +294,13 @@ describe('NetworkService', () => {
 
     test('returns null when no ports available', async () => {
       const mockServer = {
-        listen: jest.fn((port, callback) => {
+        listen: vi.fn((port, callback) => {
           const error: any = new Error('Port in use');
           error.code = 'EADDRINUSE';
           mockServer.on.mock.calls[0][1](error);
         }),
-        close: jest.fn(),
-        on: jest.fn()
+        close: vi.fn(),
+        on: vi.fn()
       };
       
       mockNet.createServer.mockReturnValue(mockServer as any);
@@ -353,9 +356,9 @@ describe('NetworkService', () => {
         protocol: 'http'
       };
       
-      mockFs.writeFileSync = jest.fn();
-      mockFs.mkdirSync = jest.fn();
-      mockFs.existsSync = jest.fn().mockReturnValue(false);
+      mockFs.writeFileSync = vi.fn();
+      mockFs.mkdirSync = vi.fn();
+      mockFs.existsSync = vi.fn().mockReturnValue(false);
       
       networkService.saveNetworkConfig(config);
       
@@ -370,7 +373,7 @@ describe('NetworkService', () => {
     test('handles save errors gracefully', () => {
       const config = { host: 'localhost', port: 3000 };
       
-      mockFs.writeFileSync = jest.fn().mockImplementation(() => {
+      mockFs.writeFileSync = vi.fn().mockImplementation(() => {
         throw new Error('Write error');
       });
       
@@ -385,8 +388,8 @@ describe('NetworkService', () => {
         port: 3000
       });
       
-      mockFs.existsSync = jest.fn().mockReturnValue(true);
-      mockFs.readFileSync = jest.fn().mockReturnValue(configData);
+      mockFs.existsSync = vi.fn().mockReturnValue(true);
+      mockFs.readFileSync = vi.fn().mockReturnValue(configData);
       
       const config = networkService.loadNetworkConfig();
       
@@ -397,7 +400,7 @@ describe('NetworkService', () => {
     });
 
     test('returns null when config file does not exist', () => {
-      mockFs.existsSync = jest.fn().mockReturnValue(false);
+      mockFs.existsSync = vi.fn().mockReturnValue(false);
       
       const config = networkService.loadNetworkConfig();
       
@@ -405,8 +408,8 @@ describe('NetworkService', () => {
     });
 
     test('handles invalid JSON gracefully', () => {
-      mockFs.existsSync = jest.fn().mockReturnValue(true);
-      mockFs.readFileSync = jest.fn().mockReturnValue('invalid json');
+      mockFs.existsSync = vi.fn().mockReturnValue(true);
+      mockFs.readFileSync = vi.fn().mockReturnValue('invalid json');
       
       const config = networkService.loadNetworkConfig();
       

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { Card } from '../base/card';
 import { Button } from '../base/button';
 import { Badge } from '../base/badge';
@@ -154,10 +155,10 @@ export function LogViewer({
   const [levelFilter, setLevelFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
-  const logContainerRef = useRef<HTMLDivElement>(null);
   const autoRefreshRef = useRef<NodeJS.Timeout | null>(null);
   const [autoRefreshOn, setAutoRefreshOn] = useState(autoRefreshMs > 0);
   const [autoScroll, setAutoScroll] = useState<boolean>(autoScrollDefault ?? true);
+  const virtuosoRef = useRef<VirtuosoHandle | null>(null);
   const [isPaused, setIsPaused] = useState<boolean>(pausedDefault ?? false);
 
   const LevelChip = ({ level }: { level: string }) => {
@@ -201,7 +202,7 @@ export function LogViewer({
 
   const enforceMax = (entries: LogEntry[]) => {
     if (!maxEntries || entries.length <= maxEntries) return entries;
-    return entries.slice(0, maxEntries);
+    return entries.slice(-maxEntries);
   };
 
   // Coalesce stack traces
@@ -226,13 +227,15 @@ export function LogViewer({
 
   // Update logs from external source
   useEffect(() => {
-    if (externalLogs.length > 0) {
-      const normalized = coalesceStackTraces(externalLogs);
-      setLogs(enforceMax(normalized));
-      const cats = Array.from(new Set(normalized.map(l => l.category || l.source || '').filter(Boolean))).sort();
-      setAvailableCategories(cats);
-    }
-  }, [externalLogs]);
+    if (externalLogs.length === 0) return;
+    const normalized = coalesceStackTraces(externalLogs);
+    const sorted = normalized.sort(
+      (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    );
+    setLogs(enforceMax(sorted));
+    const cats = Array.from(new Set(sorted.map(l => l.category || l.source || '').filter(Boolean))).sort();
+    setAvailableCategories(cats);
+  }, [externalLogs, maxEntries]);
 
   useEffect(() => {
     setLogFiles(externalLogFiles);
@@ -272,12 +275,8 @@ export function LogViewer({
 
   // Auto-scroll when enabled
   useEffect(() => {
-    if (!autoScroll || !logContainerRef.current) return;
-    queueMicrotask(() => {
-      if (logContainerRef.current) {
-        logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
-      }
-    });
+    if (!autoScroll || !virtuosoRef.current || filteredLogs.length === 0) return;
+    virtuosoRef.current.scrollToIndex({ index: filteredLogs.length - 1, align: 'end' });
   }, [filteredLogs, autoScroll]);
 
   // Auto-refresh polling
@@ -296,7 +295,7 @@ export function LogViewer({
           const normalized = coalesceStackTraces(fetched);
           const sorted = normalized.sort(
             (a, b) =>
-              new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+              new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
           );
           setLogs(enforceMax(sorted));
         })
@@ -330,7 +329,7 @@ export function LogViewer({
           const normalized = coalesceStackTraces(fetchedLogs);
           const sorted = normalized.sort(
             (a, b) =>
-              new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+              new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
           );
           setLogs(enforceMax(sorted));
         } catch (error) {
@@ -373,16 +372,17 @@ export function LogViewer({
       setLogs(prev => {
         const currentLogs = prev || [];
         if (/^\s*at\s/.test(log.message) && currentLogs.length > 0) {
-          const [first, ...rest] = currentLogs as [LogEntry, ...LogEntry[]];
-          const stack = first.metadata?.stack ? `${first.metadata.stack}\n${log.message}` : log.message;
+          const last = currentLogs[currentLogs.length - 1];
+          const stack = last.metadata?.stack ? `${last.metadata.stack}\n${log.message}` : log.message;
           const merged: LogEntry = {
-            ...first,
-            metadata: { ...(first.metadata || {}), stack }
+            ...last,
+            metadata: { ...(last.metadata || {}), stack }
           };
-          return enforceMax([merged, ...rest]);
+          const next = [...currentLogs.slice(0, -1), merged];
+          return enforceMax(next);
         }
         const entry = { ...log, id: `${Date.now()}-${Math.random()}` };
-        const next = [entry, ...currentLogs];
+        const next = [...currentLogs, entry];
         return enforceMax(next);
       });
     };
@@ -725,7 +725,7 @@ export function LogViewer({
                 </div>
               </div>
 
-              <div className={cn('overflow-y-auto overflow-x-auto bg-white dark:bg-gray-900')} style={{ height }} ref={logContainerRef}>
+              <div className={cn('bg-white dark:bg-gray-900')} style={{ height }}>
                 {loading ? (
                   <div className="flex items-center justify-center h-full">
                     <div className="h-8 w-8 rounded-full border-2 border-gray-300 border-t-transparent animate-spin" />
@@ -739,9 +739,14 @@ export function LogViewer({
                     </div>
                   </div>
                 ) : (
-                  <div>
-                    {filteredLogs.map(renderLogEntry)}
-                  </div>
+                  <Virtuoso
+                    ref={virtuosoRef}
+                    data={filteredLogs}
+                    followOutput={autoScroll ? 'smooth' : false}
+                    overscan={200}
+                    itemContent={(_, log) => renderLogEntry(log)}
+                    style={{ height: '100%' }}
+                  />
                 )}
               </div>
 

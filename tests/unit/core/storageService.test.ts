@@ -3,26 +3,26 @@
  */
 
 // Mock fs-utils before importing the service to avoid touching real disk
-jest.mock('../../../src/utils/fs-utils', () => {
+vi.mock('../../../src/utils/fs-utils', () => {
   const now = new Date();
   return {
-    ensureDir: jest.fn().mockResolvedValue(undefined),
-    writeFile: jest.fn().mockResolvedValue(undefined),
-    readFile: jest.fn().mockResolvedValue(Buffer.from('test content')),
-    pathExists: jest.fn().mockResolvedValue(true),
-    copy: jest.fn().mockResolvedValue(undefined),
-    remove: jest.fn().mockResolvedValue(undefined),
-    unlink: jest.fn().mockResolvedValue(undefined),
-    readdir: jest.fn().mockResolvedValue([]),
-    stat: jest.fn().mockResolvedValue({
+    ensureDir: vi.fn().mockResolvedValue(undefined),
+    writeFile: vi.fn().mockResolvedValue(undefined),
+    readFile: vi.fn().mockResolvedValue(Buffer.from('test content')),
+    pathExists: vi.fn().mockResolvedValue(true),
+    copy: vi.fn().mockResolvedValue(undefined),
+    remove: vi.fn().mockResolvedValue(undefined),
+    unlink: vi.fn().mockResolvedValue(undefined),
+    readdir: vi.fn().mockResolvedValue([]),
+    stat: vi.fn().mockResolvedValue({
       size: 1024,
       isFile: () => true,
       isDirectory: () => false,
       birthtime: now,
       mtime: now
     }),
-    emptyDir: jest.fn().mockResolvedValue(undefined),
-    move: jest.fn().mockResolvedValue(undefined),
+    emptyDir: vi.fn().mockResolvedValue(undefined),
+    move: vi.fn().mockResolvedValue(undefined),
   };
 });
 
@@ -32,56 +32,59 @@ import crypto from 'crypto';
 import * as fsUtils from '../../../src/utils/fs-utils';
 
 // Mock dependencies
-jest.mock('fs-extra');
-jest.mock('crypto');
+vi.mock('fs-extra');
+vi.mock('crypto');
 
 // Mock winston-daily-rotate-file
-jest.mock('winston-daily-rotate-file', () => {
-  return jest.fn().mockImplementation(() => ({
-    on: jest.fn(),
-    log: jest.fn()
-  }));
-});
-
-// Mock the logger
-jest.mock('../../../src/core', () => ({
-  ...jest.requireActual('../../../src/core'),
-  createLogger: jest.fn(() => ({
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn()
+vi.mock('winston-daily-rotate-file', () => ({
+  default: vi.fn().mockImplementation(() => ({
+    on: vi.fn(),
+    log: vi.fn()
   }))
 }));
+
+// Mock the logger
+vi.mock('../../../src/core', async () => {
+  const actual = await vi.importActual<typeof import('../../../src/core')>('../../../src/core');
+  return {
+    ...actual,
+    createLogger: vi.fn(() => ({
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn()
+    }))
+  };
+});
 
 describe('StorageService', () => {
   let handler: StorageService;
   
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     handler = new StorageService();
     
     // Setup default mocks
-    (fsUtils.ensureDir as jest.Mock).mockResolvedValue(undefined);
-    (fsUtils.writeFile as unknown as jest.Mock).mockResolvedValue(undefined);
-    (fsUtils.readFile as unknown as jest.Mock).mockResolvedValue(Buffer.from('test content'));
-    (fsUtils.stat as unknown as jest.Mock).mockResolvedValue({ 
+    (fsUtils.ensureDir as vi.Mock).mockResolvedValue(undefined);
+    (fsUtils.writeFile as unknown as vi.Mock).mockResolvedValue(undefined);
+    (fsUtils.readFile as unknown as vi.Mock).mockResolvedValue(Buffer.from('test content'));
+    (fsUtils.stat as unknown as vi.Mock).mockResolvedValue({ 
       size: 1024,
       isFile: () => true,
       isDirectory: () => false,
       birthtime: new Date(),
       mtime: new Date()
     });
-    (fsUtils.pathExists as jest.Mock).mockResolvedValue(false);
-    (fsUtils.copy as jest.Mock).mockResolvedValue(undefined);
-    (fsUtils.remove as jest.Mock).mockResolvedValue(undefined);
-    (fsUtils.unlink as unknown as jest.Mock).mockResolvedValue(undefined);
-    (fsUtils.readdir as unknown as jest.Mock).mockResolvedValue([]);
+    (fsUtils.pathExists as vi.Mock).mockResolvedValue(false);
+    (fsUtils.copy as vi.Mock).mockResolvedValue(undefined);
+    (fsUtils.remove as vi.Mock).mockResolvedValue(undefined);
+    (fsUtils.unlink as unknown as vi.Mock).mockResolvedValue(undefined);
+    (fsUtils.readdir as unknown as vi.Mock).mockResolvedValue([]);
     
     // Mock crypto
-    (crypto.createHash as jest.Mock).mockReturnValue({
-      update: jest.fn().mockReturnThis(),
-      digest: jest.fn(() => 'mockhash123')
+    (crypto.createHash as vi.Mock).mockReturnValue({
+      update: vi.fn().mockReturnThis(),
+      digest: vi.fn(() => 'mockhash123')
     });
   });
   
@@ -111,12 +114,12 @@ describe('StorageService', () => {
       await handler.initialize();
       
       // ensureDir should only be called once per directory
-      const callCount = (fsUtils.ensureDir as jest.Mock).mock.calls.length;
+      const callCount = (fsUtils.ensureDir as vi.Mock).mock.calls.length;
       expect(callCount).toBeLessThanOrEqual(6); // Number of base directories
     });
     
     test('handles initialization errors', async () => {
-      (fsUtils.ensureDir as jest.Mock).mockRejectedValueOnce(new Error('Permission denied'));
+      (fsUtils.ensureDir as vi.Mock).mockRejectedValueOnce(new Error('Permission denied'));
       
       await expect(handler.initialize()).rejects.toThrow('Permission denied');
     });
@@ -164,7 +167,7 @@ describe('StorageService', () => {
   describe('path validation', () => {
     test('accepts valid paths within base directory', async () => {
       await handler.initialize();
-      (fsUtils.pathExists as jest.Mock).mockResolvedValueOnce(true);
+      (fsUtils.pathExists as vi.Mock).mockResolvedValueOnce(true);
       // validatePath is internal, test through file operations
       const result = await handler.readFile('test.txt', 'data');
       expect(result).toBeTruthy();
@@ -172,7 +175,7 @@ describe('StorageService', () => {
     
     test('sanitizes path traversal attempts', async () => {
       await handler.initialize();
-      (fsUtils.pathExists as jest.Mock).mockResolvedValueOnce(true);
+      (fsUtils.pathExists as vi.Mock).mockResolvedValueOnce(true);
       // Path traversal attempts are sanitized to just the filename
       const content = await handler.readFile('../../../etc/passwd', 'data');
       expect(content).toBeDefined();
@@ -184,7 +187,7 @@ describe('StorageService', () => {
     
     test('sanitizes absolute paths', async () => {
       await handler.initialize();
-      (fsUtils.pathExists as jest.Mock).mockResolvedValueOnce(true);
+      (fsUtils.pathExists as vi.Mock).mockResolvedValueOnce(true);
       // Absolute paths are sanitized to just the filename
       const content = await handler.readFile('/etc/passwd', 'data');
       expect(content).toBeDefined();
@@ -202,7 +205,7 @@ describe('StorageService', () => {
     
     test('automatically initializes when needed', async () => {
       const uninitializedHandler = new StorageService();
-      (fsUtils.pathExists as jest.Mock).mockResolvedValueOnce(true);
+      (fsUtils.pathExists as vi.Mock).mockResolvedValueOnce(true);
       // Handler will auto-initialize when readFile is called
       const content = await uninitializedHandler.readFile('test.txt', 'data');
       expect(content).toBeDefined();
@@ -212,12 +215,12 @@ describe('StorageService', () => {
   describe('saveFile', () => {
     beforeEach(async () => {
       await handler.initialize();
-      (fsUtils.writeFile as jest.Mock).mockClear();
-      (fsUtils.copy as jest.Mock).mockClear();
+      (fsUtils.writeFile as vi.Mock).mockClear();
+      (fsUtils.copy as vi.Mock).mockClear();
     });
     
     test('saves file content', async () => {
-      (fsUtils.pathExists as jest.Mock).mockResolvedValueOnce(false); // File doesn't exist yet
+      (fsUtils.pathExists as vi.Mock).mockResolvedValueOnce(false); // File doesn't exist yet
       const content = 'test content';
       const info = await handler.saveFile(content, 'test.txt', 'data');
       
@@ -229,7 +232,7 @@ describe('StorageService', () => {
     });
     
     test('creates backup when requested', async () => {
-      (fsUtils.pathExists as jest.Mock).mockResolvedValueOnce(true);
+      (fsUtils.pathExists as vi.Mock).mockResolvedValueOnce(true);
       
       await handler.saveFile('content', 'test.txt', 'data', {
         overwrite: true,
@@ -240,14 +243,14 @@ describe('StorageService', () => {
     });
     
     test('prevents overwriting without permission', async () => {
-      (fsUtils.pathExists as jest.Mock).mockResolvedValueOnce(true);
+      (fsUtils.pathExists as vi.Mock).mockResolvedValueOnce(true);
       
       await expect(handler.saveFile('content', 'test.txt', 'data'))
         .rejects.toThrow('File already exists');
     });
     
     test('allows overwriting with permission', async () => {
-      (fsUtils.pathExists as jest.Mock).mockResolvedValueOnce(true);
+      (fsUtils.pathExists as vi.Mock).mockResolvedValueOnce(true);
       
       const info = await handler.saveFile('content', 'test.txt', 'data', {
         overwrite: true
@@ -258,7 +261,7 @@ describe('StorageService', () => {
     });
     
     test('enforces max file size', async () => {
-      (fsUtils.pathExists as jest.Mock).mockResolvedValueOnce(false); // File doesn't exist yet
+      (fsUtils.pathExists as vi.Mock).mockResolvedValueOnce(false); // File doesn't exist yet
       // Lower max size to keep test fast
       (handler as any).maxFileSize = 1;
       const largeContent = 'too-big';
@@ -268,7 +271,7 @@ describe('StorageService', () => {
     });
     
     test('calculates file hash', async () => {
-      (fsUtils.pathExists as jest.Mock).mockResolvedValueOnce(false); // File doesn't exist yet
+      (fsUtils.pathExists as vi.Mock).mockResolvedValueOnce(false); // File doesn't exist yet
       const info = await handler.saveFile('content', 'test.txt', 'data');
       
       expect(crypto.createHash).toHaveBeenCalledWith('sha256');
@@ -279,7 +282,7 @@ describe('StorageService', () => {
   describe('readFile', () => {
     beforeEach(async () => {
       await handler.initialize();
-      (fsUtils.pathExists as jest.Mock).mockResolvedValue(true);
+      (fsUtils.pathExists as vi.Mock).mockResolvedValue(true);
     });
     
     test('reads file content', async () => {
@@ -301,7 +304,7 @@ describe('StorageService', () => {
     });
     
     test('enforces max size limit', async () => {
-      (fsUtils.stat as unknown as jest.Mock).mockResolvedValueOnce({
+      (fsUtils.stat as unknown as vi.Mock).mockResolvedValueOnce({
         size: 10 * 1024 * 1024, // 10MB
         isFile: () => true
       });
@@ -311,20 +314,20 @@ describe('StorageService', () => {
     });
     
     test('throws on non-existent file', async () => {
-      (fsUtils.pathExists as jest.Mock).mockResolvedValueOnce(false);
+      (fsUtils.pathExists as vi.Mock).mockResolvedValueOnce(false);
       
       await expect(handler.readFile('missing.txt', 'data'))
         .rejects.toThrow('File not found');
     });
     
     test('reads directory as file', async () => {
-      (fsUtils.pathExists as jest.Mock).mockResolvedValueOnce(true);
-      (fsUtils.stat as unknown as jest.Mock).mockResolvedValueOnce({
+      (fsUtils.pathExists as vi.Mock).mockResolvedValueOnce(true);
+      (fsUtils.stat as unknown as vi.Mock).mockResolvedValueOnce({
         size: 100,
         isFile: () => false,
         isDirectory: () => true
       });
-      (fsUtils.readFile as unknown as jest.Mock).mockResolvedValueOnce(Buffer.from('dir content'));
+      (fsUtils.readFile as unknown as vi.Mock).mockResolvedValueOnce(Buffer.from('dir content'));
       
       const content = await handler.readFile('somedir', 'data');
       expect(content).toBeDefined();
@@ -337,8 +340,8 @@ describe('StorageService', () => {
     });
     
     test('deletes existing file', async () => {
-      (fsUtils.pathExists as jest.Mock).mockResolvedValueOnce(true);
-      (fsUtils.unlink as unknown as jest.Mock).mockResolvedValueOnce(undefined);
+      (fsUtils.pathExists as vi.Mock).mockResolvedValueOnce(true);
+      (fsUtils.unlink as unknown as vi.Mock).mockResolvedValueOnce(undefined);
       
       const result = await handler.deleteFile('test.txt', 'data');
       
@@ -347,7 +350,7 @@ describe('StorageService', () => {
     });
     
     test('returns false for non-existent file', async () => {
-      (fsUtils.pathExists as jest.Mock).mockResolvedValueOnce(false);
+      (fsUtils.pathExists as vi.Mock).mockResolvedValueOnce(false);
       
       const result = await handler.deleteFile('missing.txt', 'data');
       
@@ -356,8 +359,8 @@ describe('StorageService', () => {
     });
     
     test('handles deletion errors', async () => {
-      (fsUtils.pathExists as jest.Mock).mockResolvedValueOnce(true);
-      (fsUtils.unlink as unknown as jest.Mock).mockRejectedValueOnce(new Error('Permission denied'));
+      (fsUtils.pathExists as vi.Mock).mockResolvedValueOnce(true);
+      (fsUtils.unlink as unknown as vi.Mock).mockRejectedValueOnce(new Error('Permission denied'));
       
       await expect(handler.deleteFile('test.txt', 'data'))
         .rejects.toThrow('Permission denied');
@@ -370,8 +373,8 @@ describe('StorageService', () => {
     });
     
     test('lists files in directory', async () => {
-      (fsUtils.readdir as unknown as jest.Mock).mockResolvedValueOnce(['file1.txt', 'file2.txt', 'subdir']);
-      (fsUtils.stat as unknown as jest.Mock)
+      (fsUtils.readdir as unknown as vi.Mock).mockResolvedValueOnce(['file1.txt', 'file2.txt', 'subdir']);
+      (fsUtils.stat as unknown as vi.Mock)
         .mockResolvedValueOnce({ 
           size: 100, 
           isFile: () => true,
@@ -403,7 +406,7 @@ describe('StorageService', () => {
     });
     
     test('returns empty array for empty directory', async () => {
-      (fsUtils.readdir as unknown as jest.Mock).mockResolvedValueOnce([]);
+      (fsUtils.readdir as unknown as vi.Mock).mockResolvedValueOnce([]);
       
       const files = await handler.listFiles('data');
       
@@ -411,8 +414,8 @@ describe('StorageService', () => {
     });
     
     test('lists files matching pattern', async () => {
-      (fsUtils.readdir as unknown as jest.Mock).mockResolvedValueOnce(['test.txt', 'data.json', 'file.pdf']);
-      (fsUtils.stat as unknown as jest.Mock)
+      (fsUtils.readdir as unknown as vi.Mock).mockResolvedValueOnce(['test.txt', 'data.json', 'file.pdf']);
+      (fsUtils.stat as unknown as vi.Mock)
         .mockResolvedValueOnce({
           size: 50,
           isFile: () => true,
@@ -450,9 +453,9 @@ describe('StorageService', () => {
       const mtime = new Date('2024-01-02');
       
       // Clear the default mock and set specific one
-      (fsUtils.stat as unknown as jest.Mock).mockReset();
-      (fsUtils.pathExists as jest.Mock).mockResolvedValueOnce(true);
-      (fsUtils.stat as unknown as jest.Mock).mockResolvedValueOnce({
+      (fsUtils.stat as unknown as vi.Mock).mockReset();
+      (fsUtils.pathExists as vi.Mock).mockResolvedValueOnce(true);
+      (fsUtils.stat as unknown as vi.Mock).mockResolvedValueOnce({
         size: 1024,
         isFile: () => true,
         birthtime,
@@ -470,15 +473,15 @@ describe('StorageService', () => {
     });
     
     test('returns null for non-existent file', async () => {
-      (fsUtils.pathExists as jest.Mock).mockResolvedValueOnce(false);
+      (fsUtils.pathExists as vi.Mock).mockResolvedValueOnce(false);
       
       const info = await handler.getFileInfo('missing.txt', 'data');
       expect(info).toBeNull();
     });
     
     test('returns file info for directory', async () => {
-      (fsUtils.pathExists as jest.Mock).mockResolvedValueOnce(true);
-      (fsUtils.stat as unknown as jest.Mock).mockResolvedValueOnce({
+      (fsUtils.pathExists as vi.Mock).mockResolvedValueOnce(true);
+      (fsUtils.stat as unknown as vi.Mock).mockResolvedValueOnce({
         size: 0,
         isFile: () => false,
         isDirectory: () => true,

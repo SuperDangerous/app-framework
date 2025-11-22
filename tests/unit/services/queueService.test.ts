@@ -5,38 +5,41 @@
 import { QueueService, QueueJob, QueueConfig, JobHandler } from '../../../src/services/queueService';
 
 // Mock dependencies
-jest.mock('../../../src/core', () => ({
-  ...jest.requireActual('../../../src/core'),
-  createLogger: jest.fn(() => ({
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn()
-  }))
-}));
+vi.mock('../../../src/core', async () => {
+  const actual = await vi.importActual<typeof import('../../../src/core')>('../../../src/core');
+  return {
+    ...actual,
+    createLogger: vi.fn(() => ({
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn()
+    }))
+  };
+});
 
 // Create a mock file handler that we can reference
 const mockFileHandler = {
-  saveFile: jest.fn().mockResolvedValue(undefined),
-  readFile: jest.fn().mockResolvedValue('{}'),
-  listFiles: jest.fn().mockResolvedValue([])
+  saveFile: vi.fn().mockResolvedValue(undefined),
+  readFile: vi.fn().mockResolvedValue('{}'),
+  listFiles: vi.fn().mockResolvedValue([])
 };
 
-jest.mock('../../../src/core/storageService', () => ({
-  getStorageService: jest.fn(() => mockFileHandler)
+vi.mock('../../../src/core/storageService', () => ({
+  getStorageService: vi.fn(() => mockFileHandler)
 }));
 
 describe('QueueService', () => {
   let queueService: QueueService;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    jest.useFakeTimers();
+    vi.clearAllMocks();
+    vi.useFakeTimers();
     queueService = new QueueService();
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   describe('constructor', () => {
@@ -71,7 +74,7 @@ describe('QueueService', () => {
 
   describe('registerHandler', () => {
     test('registers job handler successfully', () => {
-      const handler: JobHandler = jest.fn();
+      const handler: JobHandler = vi.fn();
       
       queueService.registerHandler('test-job', handler);
       
@@ -80,8 +83,8 @@ describe('QueueService', () => {
     });
 
     test('registers multiple handlers', () => {
-      const handler1: JobHandler = jest.fn();
-      const handler2: JobHandler = jest.fn();
+      const handler1: JobHandler = vi.fn();
+      const handler2: JobHandler = vi.fn();
       
       queueService.registerHandler('job-type-1', handler1);
       queueService.registerHandler('job-type-2', handler2);
@@ -90,8 +93,8 @@ describe('QueueService', () => {
     });
 
     test('overwrites existing handler', () => {
-      const handler1: JobHandler = jest.fn();
-      const handler2: JobHandler = jest.fn();
+      const handler1: JobHandler = vi.fn();
+      const handler2: JobHandler = vi.fn();
       
       queueService.registerHandler('test-job', handler1);
       queueService.registerHandler('test-job', handler2);
@@ -124,7 +127,7 @@ describe('QueueService', () => {
     });
 
     test('emits job:added event', async () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       queueService.on('job:added', listener);
       
       await queueService.addJob('test-job', { data: 'test' });
@@ -148,7 +151,7 @@ describe('QueueService', () => {
 
     test('triggers processing if queue is running', async () => {
       queueService['isRunning'] = true;
-      const processSpy = jest.spyOn(queueService as any, 'processNextJob').mockImplementation();
+      const processSpy = vi.spyOn(queueService as any, 'processNextJob').mockImplementation();
       
       await queueService.addJob('test-job', { data: 'test' });
       
@@ -158,7 +161,7 @@ describe('QueueService', () => {
 
   describe('start', () => {
     test('starts queue processing', async () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       queueService.on('queue:started', listener);
       
       await queueService.start();
@@ -176,7 +179,7 @@ describe('QueueService', () => {
 
     test('does not start if already running', async () => {
       queueService['isRunning'] = true;
-      const listener = jest.fn();
+      const listener = vi.fn();
       queueService.on('queue:started', listener);
       
       await queueService.start();
@@ -200,8 +203,8 @@ describe('QueueService', () => {
         updatedAt: new Date().toISOString()
       };
       
-      fileHandler.listFiles = jest.fn().mockResolvedValue(['job_persisted-1.json']);
-      fileHandler.readFile = jest.fn().mockResolvedValue(JSON.stringify(persistedJob));
+      fileHandler.listFiles = vi.fn().mockResolvedValue(['job_persisted-1.json']);
+      fileHandler.readFile = vi.fn().mockResolvedValue(JSON.stringify(persistedJob));
       
       await persistQueue.start();
       
@@ -221,7 +224,7 @@ describe('QueueService', () => {
       queueService['isRunning'] = true;
       queueService['pollingTimer'] = setInterval(() => {}, 1000);
       
-      const listener = jest.fn();
+      const listener = vi.fn();
       queueService.on('queue:stopped', listener);
       
       await queueService.stop();
@@ -232,7 +235,7 @@ describe('QueueService', () => {
     });
 
     test('does not stop if not running', async () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       queueService.on('queue:stopped', listener);
       
       await queueService.stop();
@@ -247,7 +250,7 @@ describe('QueueService', () => {
       // Mock the wait loop
       let waitCount = 0;
       const originalSetTimeout = global.setTimeout;
-      (global as any).setTimeout = jest.fn((callback: any) => {
+      (global as any).setTimeout = vi.fn((callback: any) => {
         waitCount++;
         if (waitCount > 2) {
           queueService['activeJobs'] = 0;
@@ -485,7 +488,7 @@ describe('QueueService', () => {
       const persistQueue = new QueueService({ enablePersistence: true });
       const fileHandler = persistQueue['fileHandler'];
       
-      fileHandler.listFiles = jest.fn().mockRejectedValue(new Error('Read error'));
+      fileHandler.listFiles = vi.fn().mockRejectedValue(new Error('Read error'));
       
       await persistQueue['loadPersistedJobs']();
       // Should not throw

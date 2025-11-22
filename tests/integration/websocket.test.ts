@@ -1,8 +1,9 @@
 import { createServer, Server as HTTPServer } from 'http';
 import { io as ioClient, Socket as ClientSocket } from 'socket.io-client';
+import { vi } from 'vitest';
 import { createWebSocketServer, WebSocketServer, getWebSocketServer } from '../../src/services/websocketServer.js';
 
-jest.setTimeout(20000);
+vi.setConfig({ testTimeout: 20000 });
 
 describe('WebSocket Integration', () => {
   let httpServer: HTTPServer;

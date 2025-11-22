@@ -14,44 +14,58 @@ import {
 import { getStorageService } from '../../../src/core/storageService';
 import type { StorageService } from '../../../src/core/storageService';
 
-const storageMock: jest.Mocked<StorageService> = {
-  saveUserUpload: jest.fn(),
-  cleanTempFiles: jest.fn()
+const storageMock: vi.Mocked<StorageService> = {
+  saveUserUpload: vi.fn(),
+  cleanTempFiles: vi.fn()
 } as any;
 
 // Mock dependencies
-jest.mock('multer');
-jest.mock('../../../src/core/storageService', () => {
-  const actual = jest.requireActual('../../../src/core/storageService');
+vi.mock('multer', () => {
+  const multerMock: any = vi.fn();
+  multerMock.memoryStorage = vi.fn(() => ({}));
+  multerMock.MulterError = class MulterError extends Error {
+    code: string;
+    constructor(code: string) {
+      super(code);
+      this.code = code;
+    }
+  };
+  return { default: multerMock };
+});
+vi.mock('../../../src/core/storageService', async () => {
+  const actual = await vi.importActual<typeof import('../../../src/core/storageService')>('../../../src/core/storageService');
   return {
     ...actual,
-    getStorageService: jest.fn(() => storageMock)
+    getStorageService: vi.fn(() => storageMock)
   };
 });
-jest.mock('../../../src/core', () => ({
-  ...jest.requireActual('../../../src/core'),
-  createLogger: jest.fn(() => ({
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn()
-  }))
-}));
+vi.mock('../../../src/core', async () => {
+  const actual = await vi.importActual<typeof import('../../../src/core')>('../../../src/core');
+  return {
+    ...actual,
+    createLogger: vi.fn(() => ({
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn()
+    }))
+  };
+});
 
 // Mock setInterval
 const originalSetInterval = global.setInterval;
-const mockSetInterval = jest.fn().mockReturnValue(123); // Return a timer ID
+const mockSetInterval = vi.fn().mockReturnValue(123); // Return a timer ID
 global.setInterval = mockSetInterval as any;
 
 describe('File Upload Middleware', () => {
   let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
   let mockNext: NextFunction;
-  let mockMulterMiddleware: jest.Mock;
-  let mockStorage: jest.Mocked<StorageService>;
+  let mockMulterMiddleware: vi.Mock;
+  let mockStorage: vi.Mocked<StorageService>;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     // Setup request mock
     mockReq = {
@@ -61,35 +75,27 @@ describe('File Upload Middleware', () => {
 
     // Setup response mock
     mockRes = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn().mockReturnThis(),
-      download: jest.fn(),
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn().mockReturnThis(),
+      download: vi.fn(),
       headersSent: false
     };
 
     // Setup next function mock
-    mockNext = jest.fn();
+    mockNext = vi.fn();
 
     // Setup multer mock
-    mockMulterMiddleware = jest.fn((req, res, callback) => {
+    mockMulterMiddleware = vi.fn((req, res, callback) => {
       callback(null);
     });
 
     const mockUpload = {
-      single: jest.fn(() => mockMulterMiddleware),
-      array: jest.fn(() => mockMulterMiddleware),
-      fields: jest.fn(() => mockMulterMiddleware)
+      single: vi.fn(() => mockMulterMiddleware),
+      array: vi.fn(() => mockMulterMiddleware),
+      fields: vi.fn(() => mockMulterMiddleware)
     };
 
-    (multer as jest.MockedFunction<typeof multer>).mockReturnValue(mockUpload as any);
-    (multer.memoryStorage as jest.Mock) = jest.fn(() => ({}));
-    (multer.MulterError as any) = class MulterError extends Error {
-      code: string;
-      constructor(code: string) {
-        super(code);
-        this.code = code;
-      }
-    };
+    (multer as any).mockReturnValue(mockUpload as any);
 
     // Setup StorageService mock
     mockStorage = storageMock;
@@ -257,10 +263,10 @@ describe('File Upload Middleware', () => {
 
       createFileUpload(config);
 
-      const fileFilterCall = (multer as jest.MockedFunction<typeof multer>).mock.calls[0][0];
+      const fileFilterCall = (multer as vi.MockedFunction<typeof multer>).mock.calls[0][0];
       const fileFilter = fileFilterCall.fileFilter;
 
-      const cb = jest.fn();
+      const cb = vi.fn();
       
       // Test allowed file type
       fileFilter(mockReq as Request, { originalname: 'test.jpg' } as any, cb);
@@ -277,10 +283,10 @@ describe('File Upload Middleware', () => {
     test('skips file type validation when no types specified', () => {
       createFileUpload({ allowedTypes: [] });
 
-      const fileFilterCall = (multer as jest.MockedFunction<typeof multer>).mock.calls[0][0];
+      const fileFilterCall = (multer as vi.MockedFunction<typeof multer>).mock.calls[0][0];
       const fileFilter = fileFilterCall.fileFilter;
 
-      const cb = jest.fn();
+      const cb = vi.fn();
       fileFilter(mockReq as Request, { originalname: 'test.anything' } as any, cb);
       expect(cb).toHaveBeenCalledWith(null, true);
     });
@@ -299,7 +305,7 @@ describe('File Upload Middleware', () => {
       const fields = ['name', 'email', 'avatar'];
       const middleware = parseFormData(fields);
 
-      const mockUpload = (multer as jest.MockedFunction<typeof multer>).mock.results[0].value;
+      const mockUpload = (multer as vi.MockedFunction<typeof multer>).mock.results[0].value;
       expect(mockUpload.fields).toHaveBeenCalledWith([
         { name: 'name' },
         { name: 'email' },
@@ -310,7 +316,7 @@ describe('File Upload Middleware', () => {
     test('creates form data parser with no fields', () => {
       const middleware = parseFormData();
 
-      const mockUpload = (multer as jest.MockedFunction<typeof multer>).mock.results[0].value;
+      const mockUpload = (multer as vi.MockedFunction<typeof multer>).mock.results[0].value;
       expect(mockUpload.fields).toHaveBeenCalledWith([]);
     });
   });
@@ -342,7 +348,7 @@ describe('File Upload Middleware', () => {
       const middleware = sendFile('/path/to/missing.pdf');
       middleware(mockReq as Request, mockRes as Response);
 
-      const downloadCallback = (mockRes.download as jest.Mock).mock.calls[0][2];
+      const downloadCallback = (mockRes.download as vi.Mock).mock.calls[0][2];
       downloadCallback(new Error('File not found'));
 
       expect(mockRes.status).toHaveBeenCalledWith(404);
@@ -358,7 +364,7 @@ describe('File Upload Middleware', () => {
       const middleware = sendFile('/path/to/missing.pdf');
       middleware(mockReq as Request, mockRes as Response);
 
-      const downloadCallback = (mockRes.download as jest.Mock).mock.calls[0][2];
+      const downloadCallback = (mockRes.download as vi.Mock).mock.calls[0][2];
       downloadCallback(new Error('File not found'));
 
       expect(mockRes.status).not.toHaveBeenCalled();

@@ -9,38 +9,45 @@ import * as fs from 'fs-extra';
 import path from 'path';
 
 // Mock winston-daily-rotate-file
-jest.mock('winston-daily-rotate-file', () => {
-  return jest.fn().mockImplementation(() => ({
-    on: jest.fn(),
-    log: jest.fn()
-  }));
-});
-
-// Mock dependencies
-jest.mock('lowdb');
-jest.mock('lowdb/node', () => ({
-  JSONFile: jest.fn()
-}));
-jest.mock('fs-extra', () => ({
-  ensureDir: jest.fn(),
-  readFile: jest.fn(),
-  writeFile: jest.fn(),
-  remove: jest.fn(),
-  pathExists: jest.fn()
-}));
-jest.mock('../../../src/core', () => ({
-  ...jest.requireActual('../../../src/core'),
-  createLogger: jest.fn(() => ({
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn()
+vi.mock('winston-daily-rotate-file', () => ({
+  default: vi.fn().mockImplementation(() => ({
+    on: vi.fn(),
+    log: vi.fn()
   }))
 }));
 
+// Mock dependencies
+vi.mock('lowdb', () => {
+  const Low = vi.fn();
+  return { Low, default: { Low } };
+});
+vi.mock('lowdb/node', () => {
+  const JSONFile = vi.fn();
+  return { JSONFile, default: { JSONFile } };
+});
+vi.mock('fs-extra', () => ({
+  ensureDir: vi.fn(),
+  readFile: vi.fn(),
+  writeFile: vi.fn(),
+  remove: vi.fn(),
+  pathExists: vi.fn()
+}));
+vi.mock('../../../src/core', async () => {
+  const actual = await vi.importActual<typeof import('../../../src/core')>('../../../src/core');
+  return {
+    ...actual,
+    createLogger: vi.fn(() => ({
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn()
+    }))
+  };
+});
+
 // Mock path and url modules
-jest.mock('url', () => ({
-  fileURLToPath: jest.fn(() => '/mocked/path/to/file.js')
+vi.mock('url', () => ({
+  fileURLToPath: vi.fn(() => '/mocked/path/to/file.js')
 }));
 
 describe('ConversationStorage', () => {
@@ -49,25 +56,29 @@ describe('ConversationStorage', () => {
   let mockAdapter: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     // Setup mock database
     mockDb = {
       data: {
         conversations: {}
       },
-      read: jest.fn().mockResolvedValue(undefined),
-      write: jest.fn().mockResolvedValue(undefined)
+      read: vi.fn().mockResolvedValue(undefined),
+      write: vi.fn().mockResolvedValue(undefined)
     };
 
     mockAdapter = {};
     
     // Mock Low constructor
-    (Low as jest.MockedClass<typeof Low>).mockImplementation(() => mockDb as any);
-    (JSONFile as jest.MockedClass<typeof JSONFile>).mockImplementation(() => mockAdapter);
+    (Low as vi.MockedClass<typeof Low>).mockImplementation(function () {
+      return mockDb as any;
+    });
+    (JSONFile as vi.MockedClass<typeof JSONFile>).mockImplementation(function () {
+      return mockAdapter;
+    });
     
     // Mock fs-extra
-    (fs.ensureDir as jest.Mock).mockResolvedValue(undefined);
+    (fs.ensureDir as vi.Mock).mockResolvedValue(undefined);
     
     storage = new ConversationStorage();
   });
@@ -102,7 +113,7 @@ describe('ConversationStorage', () => {
 
     test('does not reinitialize if already initialized', async () => {
       await storage.initialize();
-      jest.clearAllMocks();
+      vi.clearAllMocks();
       
       await storage.initialize();
       
@@ -110,7 +121,7 @@ describe('ConversationStorage', () => {
     });
 
     test('handles initialization errors', async () => {
-      (fs.ensureDir as jest.Mock).mockRejectedValue(new Error('Directory error'));
+      (fs.ensureDir as vi.Mock).mockRejectedValue(new Error('Directory error'));
       
       await expect(storage.initialize()).rejects.toThrow('Directory error');
     });

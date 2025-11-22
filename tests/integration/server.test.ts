@@ -123,7 +123,7 @@ describe('StandardServer Integration', () => {
     await server.initialize();
     
     // Mock process.exit to prevent test from exiting
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(((code?: number | undefined) => {
+    const mockExit = vi.spyOn(process, 'exit').mockImplementation(((code?: number | undefined) => {
       throw new Error(`Process exit called with code ${code}`);
     }) as any);
     

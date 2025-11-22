@@ -14,35 +14,41 @@ import {
   getPortsInUse
 } from '../../../src/core/portUtils';
 import { exec } from 'child_process';
+import * as net from 'net';
 
 // Mock child_process
-jest.mock('child_process');
+vi.mock('child_process');
 // Mock net module
-jest.mock('net');
+vi.mock('net', () => {
+  const createServer = vi.fn();
+  return {
+    createServer,
+    default: { createServer }
+  };
+});
 
 // Simple mock implementation
-const mockExec = exec as jest.MockedFunction<typeof exec>;
+const mockExec = exec as vi.MockedFunction<typeof exec>;
 
 describe('Port Utilities', () => {
   let mockServer: any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     // Setup server mock
     mockServer = {
-      once: jest.fn(),
-      listen: jest.fn(),
-      close: jest.fn()
+      once: vi.fn(),
+      listen: vi.fn(),
+      close: vi.fn()
     };
     
     // Mock net.createServer
-    const net = require('net');
-    net.createServer = jest.fn().mockReturnValue(mockServer);
+    (net.createServer as vi.Mock).mockReturnValue(mockServer);
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('isPortAvailable', () => {
@@ -311,13 +317,12 @@ describe('Port Utilities', () => {
       const portsToMarkInUse = [3000, 3002];
       
       // Mock net.createServer for each call
-      const net = require('net');
-      net.createServer = jest.fn(() => {
+      (net.createServer as vi.Mock).mockImplementation(() => {
         const currentPort = 3000 + callCount;
         callCount++;
         
         const server: any = {
-          once: jest.fn((event: string, handler: Function): any => {
+          once: vi.fn((event: string, handler: Function): any => {
             if (event === 'error' && portsToMarkInUse.includes(currentPort)) {
               setTimeout(() => handler({ code: 'EADDRINUSE' }), 0);
             } else if (event === 'listening') {
@@ -325,8 +330,8 @@ describe('Port Utilities', () => {
             }
             return server;
           }),
-          listen: jest.fn(),
-          close: jest.fn()
+          listen: vi.fn(),
+          close: vi.fn()
         };
         return server;
       });

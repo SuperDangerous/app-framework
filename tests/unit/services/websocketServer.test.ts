@@ -6,26 +6,29 @@ import { WebSocketServer, createWebSocketServer } from '../../../src/services/we
 import { Server as HTTPServer } from 'http';
 import { Server as SocketIOServer, Socket } from 'socket.io';
 
-// Mock socket.io
-jest.mock('socket.io');
+// Mock socket.io with a newable Server
+vi.mock('socket.io', () => {
+  const Server = vi.fn();
+  return { Server };
+});
 
 describe('WebSocket Server', () => {
   let wsServer: WebSocketServer;
   let mockHttpServer: HTTPServer;
-  let mockIO: jest.Mocked<SocketIOServer>;
-  let mockSocket: jest.Mocked<Socket>;
+  let mockIO: vi.Mocked<SocketIOServer>;
+  let mockSocket: vi.Mocked<Socket>;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     // Create mock HTTP server
     mockHttpServer = {} as HTTPServer;
     
     // Create mock Socket.IO server
     mockIO = {
-      emit: jest.fn(),
-      on: jest.fn(),
-      to: jest.fn().mockReturnThis(),
+      emit: vi.fn(),
+      on: vi.fn(),
+      to: vi.fn().mockReturnThis(),
       sockets: {
         sockets: new Map()
       }
@@ -34,15 +37,17 @@ describe('WebSocket Server', () => {
     // Create mock socket
     mockSocket = {
       id: 'test-socket-id',
-      emit: jest.fn(),
-      on: jest.fn(),
-      join: jest.fn(),
-      leave: jest.fn(),
-      disconnect: jest.fn()
+      emit: vi.fn(),
+      on: vi.fn(),
+      join: vi.fn(),
+      leave: vi.fn(),
+      disconnect: vi.fn()
     } as any;
     
     // Setup Server mock to return our mock IO
-    (SocketIOServer as unknown as jest.Mock).mockImplementation(() => mockIO);
+    (SocketIOServer as unknown as vi.Mock).mockImplementation(function () {
+      return mockIO;
+    });
     
     // Create WebSocket server (resetting singleton between tests)
     wsServer = createWebSocketServer(mockHttpServer, { reset: true });

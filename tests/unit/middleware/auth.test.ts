@@ -15,26 +15,29 @@ import {
 } from '../../../src/middleware/auth';
 
 // Mock logger
-jest.mock('../../../src/core', () => ({
-  ...jest.requireActual('../../../src/core'),
-  createLogger: jest.fn(() => ({
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn()
-  }))
-}));
+vi.mock('../../../src/core', async () => {
+  const actual = await vi.importActual<typeof import('../../../src/core')>('../../../src/core');
+  return {
+    ...actual,
+    createLogger: vi.fn(() => ({
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn()
+    }))
+  };
+});
 
 describe('Authentication Middleware', () => {
   let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
   let mockNext: NextFunction;
-  let jsonMock: jest.Mock;
-  let statusMock: jest.Mock;
-  let redirectMock: jest.Mock;
+  let jsonMock: vi.Mock;
+  let statusMock: vi.Mock;
+  let redirectMock: vi.Mock;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     mockReq = {
       path: '/api/test',
@@ -44,7 +47,7 @@ describe('Authentication Middleware', () => {
         username: undefined,
         userId: undefined,
         roles: undefined,
-        destroy: jest.fn(callback => callback(null))
+        destroy: vi.fn(callback => callback(null))
       } as any
     };
     
@@ -54,9 +57,9 @@ describe('Authentication Middleware', () => {
       value: '/api/test'
     });
     
-    jsonMock = jest.fn();
-    statusMock = jest.fn().mockReturnThis();
-    redirectMock = jest.fn();
+    jsonMock = vi.fn();
+    statusMock = vi.fn().mockReturnThis();
+    redirectMock = vi.fn();
     
     mockRes = {
       json: jsonMock,
@@ -64,7 +67,7 @@ describe('Authentication Middleware', () => {
       redirect: redirectMock
     };
     
-    mockNext = jest.fn();
+    mockNext = vi.fn();
   });
 
   describe('createAuthMiddleware', () => {
@@ -149,7 +152,7 @@ describe('Authentication Middleware', () => {
     });
 
     test('calls custom unauthorized handler', () => {
-      const onUnauthorized = jest.fn();
+      const onUnauthorized = vi.fn();
       const config: AuthConfig = {
         onUnauthorized
       };
@@ -179,7 +182,7 @@ describe('Authentication Middleware', () => {
 
     beforeEach(() => {
       authService = {
-        validateCredentials: jest.fn()
+        validateCredentials: vi.fn()
       };
       loginHandler = createLoginHandler(authService);
     });
@@ -190,7 +193,7 @@ describe('Authentication Middleware', () => {
         password: 'testpass'
       };
 
-      (authService.validateCredentials as jest.Mock).mockResolvedValue({
+      (authService.validateCredentials as vi.Mock).mockResolvedValue({
         valid: true,
         user: {
           id: 'user-1',
@@ -226,7 +229,7 @@ describe('Authentication Middleware', () => {
         password: 'wrongpass'
       };
 
-      (authService.validateCredentials as jest.Mock).mockResolvedValue({
+      (authService.validateCredentials as vi.Mock).mockResolvedValue({
         valid: false,
         error: 'Invalid password'
       });
@@ -279,7 +282,7 @@ describe('Authentication Middleware', () => {
         password: 'testpass'
       };
 
-      (authService.validateCredentials as jest.Mock).mockRejectedValue(
+      (authService.validateCredentials as vi.Mock).mockRejectedValue(
         new Error('Database error')
       );
 
@@ -312,7 +315,7 @@ describe('Authentication Middleware', () => {
     });
 
     test('handles session destroy errors', () => {
-      const destroyMock = jest.fn(callback => callback(new Error('Session error')));
+      const destroyMock = vi.fn(callback => callback(new Error('Session error')));
       mockReq.session!.destroy = destroyMock as any;
 
       logoutHandler(mockReq as Request, mockRes as Response);

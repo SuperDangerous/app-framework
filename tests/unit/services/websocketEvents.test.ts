@@ -13,15 +13,18 @@ import {
 import { Server as SocketIOServer, Socket } from 'socket.io';
 
 // Mock dependencies
-jest.mock('../../../src/core', () => ({
-  ...jest.requireActual('../../../src/core'),
-  createLogger: jest.fn(() => ({
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn()
-  }))
-}));
+vi.mock('../../../src/core', async () => {
+  const actual = await vi.importActual<typeof import('../../../src/core')>('../../../src/core');
+  return {
+    ...actual,
+    createLogger: vi.fn(() => ({
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn()
+    }))
+  };
+});
 
 describe('WebSocketEvents', () => {
   let mockIo: any;
@@ -29,23 +32,23 @@ describe('WebSocketEvents', () => {
   let manager: WebSocketEventManager;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     // Setup mock socket
     mockSocket = {
       id: 'socket-123',
-      join: jest.fn(),
-      leave: jest.fn(),
-      emit: jest.fn(),
-      on: jest.fn()
+      join: vi.fn(),
+      leave: vi.fn(),
+      emit: vi.fn(),
+      on: vi.fn()
     };
 
     // Setup mock io
     mockIo = {
-      on: jest.fn(),
-      emit: jest.fn(),
-      to: jest.fn(() => ({
-        emit: jest.fn()
+      on: vi.fn(),
+      emit: vi.fn(),
+      to: vi.fn(() => ({
+        emit: vi.fn()
       })),
       sockets: {
         sockets: new Map([['socket-123', mockSocket]])
@@ -181,7 +184,7 @@ describe('WebSocketEvents', () => {
           data: { content: 'Hello channel' }
         };
         
-        const mockToEmit = jest.fn();
+        const mockToEmit = vi.fn();
         mockIo.to.mockReturnValue({ emit: mockToEmit });
         
         manager.emit('channel1', 'channel-event', payload);
@@ -199,7 +202,7 @@ describe('WebSocketEvents', () => {
           data: { message: 'Hello socket' }
         };
         
-        const mockToEmit = jest.fn();
+        const mockToEmit = vi.fn();
         mockIo.to.mockReturnValue({ emit: mockToEmit });
         
         manager.send('socket-123', 'direct-event', payload);
@@ -211,7 +214,7 @@ describe('WebSocketEvents', () => {
 
     describe('on', () => {
       test('registers custom event handler', () => {
-        const handler = jest.fn();
+        const handler = vi.fn();
         
         manager.on('custom-event', handler);
         
@@ -220,8 +223,8 @@ describe('WebSocketEvents', () => {
       });
 
       test('handles multiple handlers for same event', () => {
-        const handler1 = jest.fn();
-        const handler2 = jest.fn();
+        const handler1 = vi.fn();
+        const handler2 = vi.fn();
         
         manager.on('multi-handler', handler1);
         manager.on('multi-handler', handler2);
@@ -297,7 +300,7 @@ describe('WebSocketEvents', () => {
     });
 
     test('emits typed event with namespace', () => {
-      const spy = jest.spyOn(manager, 'broadcast');
+      const spy = vi.spyOn(manager, 'broadcast');
       
       typedEmitter.emit('update', { id: '123', value: 42 });
       
@@ -309,7 +312,7 @@ describe('WebSocketEvents', () => {
     });
 
     test('emits to specific channel with namespace', () => {
-      const spy = jest.spyOn(manager, 'emit');
+      const spy = vi.spyOn(manager, 'emit');
       
       typedEmitter.emitTo('channel1', 'create', { name: 'Test Item' });
       

@@ -12,16 +12,23 @@ import {
 } from '../../../src/middleware/session';
 
 // Mock dependencies
-jest.mock('express-session');
-jest.mock('../../../src/core', () => ({
-  ...jest.requireActual('../../../src/core'),
-  createLogger: jest.fn(() => ({
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn()
-  }))
-}));
+vi.mock('express-session', () => {
+  const sessionMock: any = vi.fn();
+  sessionMock.Store = class {};
+  return { default: sessionMock };
+});
+vi.mock('../../../src/core', async () => {
+  const actual = await vi.importActual<typeof import('../../../src/core')>('../../../src/core');
+  return {
+    ...actual,
+    createLogger: vi.fn(() => ({
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn()
+    }))
+  };
+});
 
 // Since Redis modules are optional dependencies that use dynamic imports,
 // we don't need to mock them - the actual middleware will handle import failures gracefully
@@ -31,23 +38,23 @@ const originalConsoleWarn = console.warn;
 
 describe('Session Middleware', () => {
   let mockApp: Partial<Express>;
-  let mockSessionMiddleware: jest.Mock;
+  let mockSessionMiddleware: vi.Mock;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     // Reset console.warn
     console.warn = originalConsoleWarn;
     
     // Mock Express app
     mockApp = {
-      use: jest.fn(),
-      set: jest.fn()
+      use: vi.fn(),
+      set: vi.fn()
     };
 
     // Mock session middleware
-    mockSessionMiddleware = jest.fn();
-    (session as unknown as jest.Mock).mockReturnValue(mockSessionMiddleware);
+    mockSessionMiddleware = vi.fn();
+    (session as unknown as vi.Mock).mockReturnValue(mockSessionMiddleware);
 
     // Reset environment variables
     delete process.env.SESSION_SECRET;
@@ -155,18 +162,18 @@ describe('Session Middleware', () => {
     test('does not add store for memory option', () => {
       configureSession(mockApp as Express, { store: 'memory' });
 
-      const callArgs = (session as unknown as jest.Mock).mock.calls[0][0];
+      const callArgs = (session as unknown as vi.Mock).mock.calls[0][0];
       expect(callArgs.store).toBeUndefined();
     });
 
     describe('production environment', () => {
       beforeEach(() => {
         process.env.NODE_ENV = 'production';
-        jest.useFakeTimers();
+        vi.useFakeTimers();
       });
 
       afterEach(() => {
-        jest.useRealTimers();
+        vi.useRealTimers();
       });
 
       test('enables secure cookies in production', () => {
@@ -184,7 +191,7 @@ describe('Session Middleware', () => {
       // Removed complex console warning test - testing implementation details rather than functionality
 
       test('suppresses MemoryStore warning', () => {
-        const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation();
         
         configureSession(mockApp as Express, { store: 'memory' });
 
@@ -200,7 +207,7 @@ describe('Session Middleware', () => {
 
       test('does not suppress warnings with custom store', () => {
         const customStore = {} as session.Store;
-        const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation();
         
         configureSession(mockApp as Express, { store: customStore });
 
@@ -289,10 +296,10 @@ describe('Session Middleware', () => {
     beforeEach(() => {
       mockReq = {
         session: {
-          regenerate: jest.fn(),
-          save: jest.fn(),
-          destroy: jest.fn(),
-          touch: jest.fn()
+          regenerate: vi.fn(),
+          save: vi.fn(),
+          destroy: vi.fn(),
+          touch: vi.fn()
         }
       };
     });

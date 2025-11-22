@@ -14,39 +14,45 @@ import * as path from 'path';
 import { z } from 'zod';
 
 // Mock winston-daily-rotate-file
-jest.mock('winston-daily-rotate-file', () => {
-  return jest.fn().mockImplementation(() => ({
-    on: jest.fn(),
-    log: jest.fn()
-  }));
-});
-
-// Mock dependencies
-jest.mock('fs', () => ({
-  existsSync: jest.fn(),
-  promises: {
-    readFile: jest.fn(),
-    writeFile: jest.fn(),
-    mkdir: jest.fn()
-  }
-}));
-
-jest.mock('../../../src/core', () => ({
-  ...jest.requireActual('../../../src/core'),
-  createLogger: jest.fn(() => ({
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn()
+vi.mock('winston-daily-rotate-file', () => ({
+  default: vi.fn().mockImplementation(() => ({
+    on: vi.fn(),
+    log: vi.fn()
   }))
 }));
+
+// Mock dependencies
+vi.mock('fs', () => {
+  const mock = {
+    existsSync: vi.fn(),
+    promises: {
+      readFile: vi.fn(),
+      writeFile: vi.fn(),
+      mkdir: vi.fn()
+    }
+  };
+  return { ...mock, default: mock };
+});
+
+vi.mock('../../../src/core', async () => {
+  const actual = await vi.importActual<typeof import('../../../src/core')>('../../../src/core');
+  return {
+    ...actual,
+    createLogger: vi.fn(() => ({
+      info: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      debug: vi.fn()
+    }))
+  };
+});
 
 describe('SettingsService', () => {
   let settingsService: SettingsService;
   const mockFs = fs as any;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     // Setup default fs mock behavior
     mockFs.existsSync.mockReturnValue(false);
@@ -60,7 +66,7 @@ describe('SettingsService', () => {
 
   afterEach(() => {
     // Clean up any timers
-    jest.clearAllTimers();
+    vi.clearAllTimers();
   });
 
   describe('constructor', () => {
@@ -140,7 +146,7 @@ describe('SettingsService', () => {
       };
       
       mockFs.existsSync.mockReturnValue(true);
-      (mockFs.promises.readFile as jest.Mock).mockResolvedValue(JSON.stringify(mockSettings));
+      (mockFs.promises.readFile as vi.Mock).mockResolvedValue(JSON.stringify(mockSettings));
       
       await service.load();
       
@@ -160,7 +166,7 @@ describe('SettingsService', () => {
     test('handles load errors', async () => {
       const service = new SettingsService({ storagePath: '/path/settings.json' });
       mockFs.existsSync.mockReturnValue(true);
-      (mockFs.promises.readFile as jest.Mock).mockRejectedValue(new Error('Read error'));
+      (mockFs.promises.readFile as vi.Mock).mockRejectedValue(new Error('Read error'));
       
       await expect(service.load()).rejects.toThrow('Failed to load settings');
     });
@@ -174,7 +180,7 @@ describe('SettingsService', () => {
       
       const encryptedPassword = Buffer.from('secret123').toString('base64');
       mockFs.existsSync.mockReturnValue(true);
-      (mockFs.promises.readFile as jest.Mock).mockResolvedValue(JSON.stringify({
+      (mockFs.promises.readFile as vi.Mock).mockResolvedValue(JSON.stringify({
         password: encryptedPassword
       }));
       
@@ -185,11 +191,11 @@ describe('SettingsService', () => {
 
     test('emits loaded event', async () => {
       const service = new SettingsService({ storagePath: '/path/settings.json' });
-      const loadedListener = jest.fn();
+      const loadedListener = vi.fn();
       service.on('loaded', loadedListener);
       
       mockFs.existsSync.mockReturnValue(true);
-      (mockFs.promises.readFile as jest.Mock).mockResolvedValue('{}');
+      (mockFs.promises.readFile as vi.Mock).mockResolvedValue('{}');
       
       await service.load();
       
@@ -234,7 +240,7 @@ describe('SettingsService', () => {
       
       await service.save();
       
-      const savedContent = (mockFs.promises.writeFile as jest.Mock).mock.calls[0][1];
+      const savedContent = (mockFs.promises.writeFile as vi.Mock).mock.calls[0][1];
       const savedData = JSON.parse(savedContent);
       expect(savedData.apiKey).toBe(Buffer.from('secret-key-123').toString('base64'));
     });
@@ -242,14 +248,14 @@ describe('SettingsService', () => {
     test('handles save errors', async () => {
       const service = new SettingsService({ storagePath: '/path/settings.json' });
       mockFs.existsSync.mockReturnValue(true);
-      (mockFs.promises.writeFile as jest.Mock).mockRejectedValue(new Error('Write error'));
+      (mockFs.promises.writeFile as vi.Mock).mockRejectedValue(new Error('Write error'));
       
       await expect(service.save()).rejects.toThrow('Failed to save settings');
     });
 
     test('emits saved event', async () => {
       const service = new SettingsService({ storagePath: '/path/settings.json' });
-      const savedListener = jest.fn();
+      const savedListener = vi.fn();
       service.on('saved', savedListener);
       
       mockFs.existsSync.mockReturnValue(true);
@@ -340,7 +346,7 @@ describe('SettingsService', () => {
     });
 
     test('emits change event', async () => {
-      const changeListener = jest.fn();
+      const changeListener = vi.fn();
       settingsService.on('change', changeListener);
       
       await settingsService.set('key', 'value');
@@ -353,22 +359,22 @@ describe('SettingsService', () => {
     });
 
     test('schedules auto-save when enabled', async () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const service = new SettingsService({ 
         storagePath: '/path/settings.json',
         autoSave: true,
         saveDebounce: 1000
       });
       
-      const saveSpy = jest.spyOn(service, 'save').mockResolvedValue();
+      const saveSpy = vi.spyOn(service, 'save').mockResolvedValue();
       
       await service.set('key', 'value');
       
-      jest.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(1000);
       
       expect(saveSpy).toHaveBeenCalled();
       
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
   });
 
@@ -386,7 +392,7 @@ describe('SettingsService', () => {
     });
 
     test('emits bulk-change event', async () => {
-      const bulkChangeListener = jest.fn();
+      const bulkChangeListener = vi.fn();
       settingsService.on('bulk-change', bulkChangeListener);
       
       await settingsService.update({
@@ -567,7 +573,7 @@ describe('SettingsService', () => {
     });
 
     test('emits reset event', () => {
-      const resetListener = jest.fn();
+      const resetListener = vi.fn();
       settingsService.on('reset', resetListener);
       
       settingsService.reset();

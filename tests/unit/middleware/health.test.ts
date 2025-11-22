@@ -11,38 +11,41 @@ import {
 } from '../../../src/middleware/health';
 
 // Mock os module
-jest.mock('os', () => ({
-  totalmem: jest.fn(() => 8 * 1024 * 1024 * 1024), // 8GB
-  freemem: jest.fn(() => 4 * 1024 * 1024 * 1024), // 4GB free
-  cpus: jest.fn(() => [
-    { times: { user: 100, nice: 0, sys: 50, idle: 850, irq: 0 } },
-    { times: { user: 100, nice: 0, sys: 50, idle: 850, irq: 0 } }
-  ]),
-  loadavg: jest.fn(() => [1.5, 2.0, 1.8])
-}));
+vi.mock('os', () => {
+  const mock = {
+    totalmem: vi.fn(() => 8 * 1024 * 1024 * 1024), // 8GB
+    freemem: vi.fn(() => 4 * 1024 * 1024 * 1024), // 4GB free
+    cpus: vi.fn(() => [
+      { times: { user: 100, nice: 0, sys: 50, idle: 850, irq: 0 } },
+      { times: { user: 100, nice: 0, sys: 50, idle: 850, irq: 0 } }
+    ]),
+    loadavg: vi.fn(() => [1.5, 2.0, 1.8])
+  };
+  return { default: mock, ...mock };
+});
 
 // Mock Express Router
 const mockRouter = {
-  get: jest.fn()
+  get: vi.fn()
 };
 
-jest.mock('express', () => ({
-  Router: jest.fn(() => mockRouter)
+vi.mock('express', () => ({
+  Router: vi.fn(() => mockRouter)
 }));
 
 describe('Health Middleware', () => {
   let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
-  let jsonMock: jest.Mock;
-  let statusMock: jest.Mock;
+  let jsonMock: vi.Mock;
+  let statusMock: vi.Mock;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     mockReq = {};
     
-    jsonMock = jest.fn();
-    statusMock = jest.fn().mockReturnThis();
+    jsonMock = vi.fn();
+    statusMock = vi.fn().mockReturnThis();
     
     mockRes = {
       json: jsonMock,
@@ -146,7 +149,7 @@ describe('Health Middleware', () => {
     });
 
     test('health endpoint checks components when provided', async () => {
-      const checkComponents = jest.fn().mockResolvedValue({
+      const checkComponents = vi.fn().mockResolvedValue({
         database: {
           status: 'healthy',
           message: 'Connected',
@@ -190,7 +193,7 @@ describe('Health Middleware', () => {
     });
 
     test('health endpoint returns unhealthy when component is unhealthy', async () => {
-      const checkComponents = jest.fn().mockResolvedValue({
+      const checkComponents = vi.fn().mockResolvedValue({
         database: {
           status: 'unhealthy',
           message: 'Connection failed'
@@ -215,7 +218,7 @@ describe('Health Middleware', () => {
     });
 
     test('health endpoint handles component check errors', async () => {
-      const checkComponents = jest.fn().mockRejectedValue(new Error('Check failed'));
+      const checkComponents = vi.fn().mockRejectedValue(new Error('Check failed'));
       
       const options: HealthCheckOptions = {
         checkComponents
@@ -249,7 +252,7 @@ describe('Health Middleware', () => {
     });
 
     test('ready endpoint checks components for readiness', async () => {
-      const checkComponents = jest.fn().mockResolvedValue({
+      const checkComponents = vi.fn().mockResolvedValue({
         database: {
           status: 'healthy'
         }
@@ -273,7 +276,7 @@ describe('Health Middleware', () => {
     });
 
     test('ready endpoint returns 503 when not ready', async () => {
-      const checkComponents = jest.fn().mockResolvedValue({
+      const checkComponents = vi.fn().mockResolvedValue({
         database: {
           status: 'unhealthy'
         }
