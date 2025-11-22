@@ -373,6 +373,7 @@ export function LogViewer({
         const currentLogs = prev || [];
         if (/^\s*at\s/.test(log.message) && currentLogs.length > 0) {
           const last = currentLogs[currentLogs.length - 1];
+          if (!last) return currentLogs;
           const stack = last.metadata?.stack ? `${last.metadata.stack}\n${log.message}` : log.message;
           const merged: LogEntry = {
             ...last,
