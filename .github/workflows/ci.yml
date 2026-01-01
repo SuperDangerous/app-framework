@@ -117,7 +117,12 @@ jobs:
           
     - name: Install dependencies
       run: npm ci
-      
+
+    - name: Build (required for integration tests)
+      run: |
+        npm run build
+        npm run build:ui
+
     - name: Run tests
       run: |
         npm run test:unit
