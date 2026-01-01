@@ -158,7 +158,7 @@ describe('Port Utilities', () => {
 
       const result = await findAvailablePort(3000, 3001);
       expect(result).toBe(null);
-    });
+    }, 10000); // Increased timeout for Windows CI
 
     test('uses default range when not specified', async () => {
       mockServer.once.mockImplementation((event: string, handler: Function) => {

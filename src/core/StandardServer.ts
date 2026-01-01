@@ -349,18 +349,20 @@ export class StandardServer {
     const host = this.config.host!;
     const exitOnError = this.config.exitOnStartupError !== false;
 
-    // Check if API port is available
-    const processOnPort = await getProcessOnPort(port);
-    if (processOnPort) {
-      const message = `Port ${port} is already in use`;
-      if (exitOnError) {
-        ensureLogger().error(message);
-        process.exit(1);
-      } else {
-        ensureLogger().warn(
-          `${message} (PID ${processOnPort.pid} - ${processOnPort.command})`,
-        );
-        return;
+    // Check if API port is available (skip for port 0 which means "pick any available")
+    if (port !== 0) {
+      const processOnPort = await getProcessOnPort(port);
+      if (processOnPort) {
+        const message = `Port ${port} is already in use`;
+        if (exitOnError) {
+          ensureLogger().error(message);
+          process.exit(1);
+        } else {
+          ensureLogger().warn(
+            `${message} (PID ${processOnPort.pid} - ${processOnPort.command})`,
+          );
+          return;
+        }
       }
     }
 
