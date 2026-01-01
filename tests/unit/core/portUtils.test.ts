@@ -151,14 +151,15 @@ describe('Port Utilities', () => {
     test('returns null when no ports available', async () => {
       mockServer.once.mockImplementation((event: string, handler: Function) => {
         if (event === 'error') {
-          setTimeout(() => handler({ code: 'EADDRINUSE' }), 0);
+          // Use queueMicrotask for more reliable async behavior on Windows
+          queueMicrotask(() => handler({ code: 'EADDRINUSE' }));
         }
         return mockServer;
       });
 
       const result = await findAvailablePort(3000, 3001);
       expect(result).toBe(null);
-    }, 10000); // Increased timeout for Windows CI
+    });
 
     test('uses default range when not specified', async () => {
       mockServer.once.mockImplementation((event: string, handler: Function) => {
