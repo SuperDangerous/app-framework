@@ -26,8 +26,9 @@ coverage/
 tests/coverage/
 
 # Logs
-logs/
+/logs/
 *.log
+!ui/components/logs/
 
 # Test artifacts
 test-results/
