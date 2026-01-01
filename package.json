@@ -49,6 +49,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "build:ui": "cd ui && npm ci && npm run build",
     "build:watch": "tsc --watch",
     "clean": "rm -rf dist",
     "prebuild": "npm run clean",

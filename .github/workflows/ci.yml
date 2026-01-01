@@ -45,16 +45,6 @@ jobs:
     - name: Install dependencies
       if: steps.cache-deps.outputs.cache-hit != 'true'
       run: npm ci
-      
-    - name: Upload workspace for parallel jobs
-      uses: actions/upload-artifact@v4
-      with:
-        name: workspace-deps
-        path: |
-          node_modules
-          package.json
-          package-lock.json
-        retention-days: 1
 
   # Parallel quality checks
   quality:
@@ -74,11 +64,19 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
         
-    - name: Download workspace
-      uses: actions/download-artifact@v4
+    - name: Cache dependencies
+      uses: actions/cache@v4
       with:
-        name: workspace-deps
-        
+        path: |
+          node_modules
+          ~/.npm
+        key: ${{ runner.os }}-node-${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-${{ env.NODE_VERSION }}-
+
+    - name: Install dependencies
+      run: npm ci
+
     - name: Run ${{ matrix.task }}
       run: |
         case "${{ matrix.task }}" in
@@ -144,21 +142,29 @@ jobs:
     name: Security Analysis
     runs-on: ubuntu-latest
     needs: setup
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-        
-    - name: Download workspace
-      uses: actions/download-artifact@v4
+
+    - name: Cache dependencies
+      uses: actions/cache@v4
       with:
-        name: workspace-deps
-      
+        path: |
+          node_modules
+          ~/.npm
+        key: ${{ runner.os }}-node-${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-${{ env.NODE_VERSION }}-
+
+    - name: Install dependencies
+      run: npm ci
+
     - name: Run security tests
       run: |
         npm run test:security || true
@@ -169,21 +175,29 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     if: github.event_name == 'push'
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-        
-    - name: Download workspace
-      uses: actions/download-artifact@v4
+
+    - name: Cache dependencies
+      uses: actions/cache@v4
       with:
-        name: workspace-deps
-      
+        path: |
+          node_modules
+          ~/.npm
+        key: ${{ runner.os }}-node-${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-${{ env.NODE_VERSION }}-
+
+    - name: Install dependencies
+      run: npm ci
+
     - name: Generate documentation
       run: |
         npm run docs:api || echo "API docs generation not configured"
@@ -376,15 +390,3 @@ jobs:
         draft: false
         prerelease: false
 
-  # Cleanup job to remove artifacts after successful release
-  cleanup:
-    name: Cleanup Artifacts
-    runs-on: ubuntu-latest
-    needs: [release]
-    if: always()
-    
-    steps:
-    - name: Delete workspace artifact
-      uses: geekyeggo/delete-artifact@v2
-      with:
-        name: workspace-deps
