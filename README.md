@@ -177,7 +177,7 @@ await server.start();
 - **DashboardStats** - Metric display cards
 - **UpdateNotification** - Application update notifications
 
-> UI bundle note: the UI package now bundles ESM-heavy dependencies (`react-markdown`, `remark-gfm`, `react-syntax-highlighter`) for better Jest/Node compatibility, and exports the new log viewer alongside the legacy variant. Use `LogViewer` for the advanced experience; `LogViewerLegacy` remains for backwards compatibility.
+> UI bundle note: the UI package bundles ESM-heavy dependencies (`react-markdown`, `remark-gfm`, `react-syntax-highlighter`) for better Jest/Node compatibility. The LogViewer is now single-source and virtualized; legacy variants have been removed.
 
 ### 🧪 Testing Utilities
 

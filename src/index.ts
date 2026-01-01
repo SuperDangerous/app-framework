@@ -99,12 +99,6 @@ export {
 
 // Configuration management - use SettingsService instead
 
-// Tauri build utilities
-export {
-  buildTauriSidecar,
-  generateBuildSidecarScript,
-  type TauriBundleOptions,
-} from "./build/tauriBundler.js";
 
 // Settings Schema exports - Consolidated implementation
 export {

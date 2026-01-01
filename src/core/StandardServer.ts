@@ -111,7 +111,7 @@ export class StandardServer {
         ? "localhost"
         : "0.0.0.0";
 
-    // Auto-enable desktop integration if running in Tauri or explicitly enabled
+    // Auto-enable desktop integration if running in Electron or explicitly enabled
     const enableDesktopIntegration =
       config.enableDesktopIntegration ?? isDesktopApp();
 
@@ -256,9 +256,10 @@ export class StandardServer {
       );
     }
 
-    // Add Tauri origins when running in desktop mode
+    // Add Electron origins when running in desktop mode
     if (isDesktopApp()) {
-      corsOrigins.push("tauri://localhost", "https://tauri.localhost");
+      // Electron file:// protocol sends null or file:// origin
+      corsOrigins.push("file://", "null");
     }
 
     this.app.use(

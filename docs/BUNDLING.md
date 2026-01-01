@@ -1,14 +1,13 @@
 # Desktop Bundling Guide
 
-This guide explains how to bundle Node.js backend applications for desktop deployment using the EpiSensor App Framework's desktop bundling capabilities.
+This guide explains how to bundle Node.js backend applications for Electron desktop deployment using the EpiSensor App Framework's bundling capabilities.
 
 ## Overview
 
 The desktop bundling system allows you to:
-- Bundle Node.js backends into self-contained executables
+- Bundle Node.js backends into optimized JavaScript bundles
 - Handle native Node.js modules properly
-- Integrate with Tauri for cross-platform desktop apps
-- Manage IPC communication between frontend and backend
+- Integrate with Electron for cross-platform desktop apps
 - Create truly offline-capable applications
 
 ## Quick Start
@@ -17,6 +16,7 @@ The desktop bundling system allows you to:
 
 ```bash
 npm install @episensor/app-framework
+npm install --save-dev electron electron-builder
 ```
 
 ### 2. Create Bundle Script
@@ -32,7 +32,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 await bundleBackend({
   entryPoint: path.join(__dirname, '../dist/index.js'),
-  outDir: path.join(__dirname, '../src-tauri/resources'),
+  outDir: path.join(__dirname, '../dist/backend'),
   appName: 'MyApp',
   version: '1.0.0',
   format: 'cjs',
@@ -65,7 +65,7 @@ interface BundleOptions {
   outDir: string;          // Output directory for bundle
   appName: string;         // Application name
   version: string;         // Application version
-  
+
   // Optional
   platform?: 'node' | 'neutral';  // Target platform (default: 'node')
   target?: string;                 // Node version (default: 'node18')
@@ -74,13 +74,13 @@ interface BundleOptions {
   sourcemap?: boolean;             // Generate sourcemaps (default: false)
   external?: string[];             // Additional external modules
   env?: Record<string, string>;    // Environment variables to inject
-  
+
   // Resources
   resources?: {
     config?: string;      // Config file to copy
     data?: string[];      // Data directories to create
   };
-  
+
   // Native modules handling
   nativeModules?: {
     autoDetect?: boolean;   // Auto-detect native modules
@@ -120,7 +120,7 @@ Or you can specify them manually:
 
 ### Common Native Modules
 
-The framework includes a list of common native modules:
+The framework handles these common native modules:
 - `serialport` - Serial port communication
 - `bcrypt` - Password hashing
 - `better-sqlite3` - SQLite database
@@ -130,78 +130,78 @@ The framework includes a list of common native modules:
 - `usb` - USB device access
 - `node-hid` - HID device access
 
-## Tauri Integration
+## Electron Integration
 
-### Backend Manager
+### Main Process
 
-Use the `BackendManager` class to manage the backend process:
+The Electron main process spawns the backend as a child process:
 
-```typescript
-import { BackendManager } from '@episensor/app-framework/desktop';
+```javascript
+const { spawn } = require('child_process');
 
-const backend = new BackendManager({
-  executable: '../resources/backend.js',
-  args: ['--port', '8080'],
-  env: {
-    NODE_ENV: 'production',
-    DESKTOP_MODE: 'true'
-  },
-  healthCheck: {
-    url: 'http://localhost:8080/health',
-    interval: 5000,
-    timeout: 3000
-  }
-});
+function startBackend() {
+  const backendPath = path.join(app.getAppPath(), 'dist/backend/backend.js');
 
-// Start backend
-await backend.start();
+  backendProcess = spawn('node', [backendPath], {
+    env: {
+      ...process.env,
+      NODE_ENV: 'production',
+      PORT: '8080',
+      ELECTRON_RUNNING: 'true',
+      DATA_DIR: app.getPath('userData'),
+    },
+  });
 
-// Stop backend
-await backend.stop();
+  backendProcess.stdout.on('data', (data) => {
+    console.log(`[Backend] ${data}`);
+  });
+}
 ```
 
-### IPC Bridge
+### Bundled Files Location
 
-Communicate between frontend and backend:
+In the packaged Electron app:
 
-```typescript
-import { IPCBridge } from '@episensor/app-framework/desktop';
-
-const ipc = new IPCBridge();
-
-// Frontend -> Backend
-const response = await ipc.invoke('api-request', {
-  method: 'GET',
-  path: '/api/data'
-});
-
-// Listen for backend events
-ipc.on('backend-event', (data) => {
-  console.log('Received from backend:', data);
-});
+```
+YourApp.app/
+└── Contents/
+    └── Resources/
+        └── app/
+            ├── dist/
+            │   └── backend/
+            │       ├── backend.js      # Bundled backend
+            │       └── start-backend.js
+            ├── web/
+            │   └── dist/              # Frontend build
+            ├── electron/
+            │   ├── main.cjs
+            │   └── preload.cjs
+            └── package.json
 ```
 
 ## Project Structure
 
-Recommended project structure for desktop apps:
+Recommended project structure for Electron apps:
 
 ```
 my-app/
-├── src/                 # Source code
+├── src/                 # Backend source code
 │   ├── index.ts        # Backend entry point
 │   └── ...
 ├── web/                # Frontend code
 │   ├── src/
 │   └── dist/           # Built frontend
-├── src-tauri/          # Tauri app
-│   ├── src/            # Rust code
-│   ├── resources/      # Bundled backend
-│   │   ├── backend.js  # Bundled backend
-│   │   ├── native-loader.js
-│   │   └── node_modules/  # Native modules
-│   └── tauri.conf.json
+├── electron/           # Electron files
+│   ├── main.cjs        # Main process
+│   └── preload.cjs     # Preload script
+├── dist/               # Compiled backend
+│   └── backend/        # Bundled backend
+│       └── backend.js
+├── build/              # Build resources
+│   └── entitlements.mac.plist
 ├── scripts/
 │   └── bundle-desktop.js
+├── electron-builder.json
 └── package.json
 ```
 
@@ -215,7 +215,7 @@ import express from 'express';
 
 const server = new StandardServer({
   appName: 'MyApp',
-  port: process.env.PORT || 8080,
+  port: parseInt(process.env.PORT || '8080'),
   enableWebSocket: true
 });
 
@@ -234,7 +234,6 @@ await server.start();
 ```javascript
 import { bundleBackend } from '@episensor/app-framework/desktop';
 import { execSync } from 'child_process';
-import path from 'path';
 
 // Build TypeScript first
 console.log('Building TypeScript...');
@@ -243,7 +242,7 @@ execSync('npm run build', { stdio: 'inherit' });
 // Bundle for desktop
 await bundleBackend({
   entryPoint: './dist/index.js',
-  outDir: './src-tauri/resources',
+  outDir: './dist/backend',
   appName: 'MyApp',
   version: '1.0.0',
   format: 'cjs',
@@ -256,23 +255,23 @@ await bundleBackend({
   }
 });
 
-console.log('✅ Desktop bundle created!');
+console.log('Desktop bundle created!');
 ```
 
-### 3. Tauri Configuration (`src-tauri/tauri.conf.json`)
+### 3. electron-builder.json
 
 ```json
 {
-  "build": {
-    "beforeDevCommand": "npm run dev:web",
-    "beforeBuildCommand": "npm run build:all",
-    "devPath": "http://localhost:3000",
-    "distDir": "../web/dist"
-  },
-  "bundle": {
-    "resources": [
-      "resources/**/*"
-    ]
+  "appId": "com.example.myapp",
+  "productName": "MyApp",
+  "files": [
+    "dist/**/*",
+    "web/dist/**/*",
+    "electron/**/*",
+    "package.json"
+  ],
+  "extraMetadata": {
+    "main": "electron/main.cjs"
   }
 }
 ```
@@ -281,23 +280,21 @@ console.log('✅ Desktop bundle created!');
 
 ```typescript
 import { useEffect, useState } from 'react';
-import { invoke } from '@tauri-apps/api';
 
 function App() {
-  const [backendStatus, setBackendStatus] = useState('starting');
-  
+  const [backendStatus, setBackendStatus] = useState('checking');
+
   useEffect(() => {
-    // Start backend
-    invoke('start_backend').then(() => {
-      setBackendStatus('running');
-    });
-    
-    // Cleanup on unmount
-    return () => {
-      invoke('stop_backend');
-    };
+    // Check if running in Electron
+    if (window.electronAPI) {
+      window.electronAPI.getBackendStatus().then((status) => {
+        setBackendStatus(status.running ? 'running' : 'stopped');
+      });
+    } else {
+      setBackendStatus('browser');
+    }
   }, []);
-  
+
   return (
     <div>
       <h1>Desktop App</h1>
@@ -313,9 +310,9 @@ function App() {
 
 If you get errors about missing native modules:
 
-1. **Ensure modules are copied**: Check that native modules are in `resources/node_modules/`
+1. **Ensure modules are in externals**: Add to `external` array
 2. **Rebuild if needed**: Use `rebuild: true` in native modules config
-3. **Check externals**: Make sure native modules are in the `external` array
+3. **Check node version**: Ensure compatible with Electron's Node version
 
 ### Bundle Size
 
@@ -327,59 +324,22 @@ To reduce bundle size:
 ### Path Issues
 
 For path resolution issues:
-- Use `process.cwd()` instead of `__dirname`
-- Ensure all paths are relative to the bundle location
-- Set `DESKTOP_MODE` environment variable
+- Use `process.cwd()` or `app.getAppPath()` for production paths
+- Check `ELECTRON_RUNNING` environment variable
+- Ensure paths are relative to bundle location
 
 ### Port Conflicts
 
 Handle port conflicts gracefully:
 
 ```typescript
+import { findAvailablePort } from '@episensor/app-framework';
+
 const port = await findAvailablePort(8080, 8090);
 process.env.PORT = port.toString();
 ```
 
-## Advanced Topics
-
-### Custom Native Module Loader
-
-Create a custom loader for complex native module scenarios:
-
-```javascript
-import { createNativeModuleLoader } from '@episensor/app-framework/desktop';
-
-await createNativeModuleLoader(
-  './resources/native-loader.js',
-  ['serialport', 'bcrypt', 'custom-module']
-);
-```
-
-### Multi-Platform Builds
-
-Build for different platforms:
-
-```javascript
-// Windows
-await bundleBackend({
-  ...options,
-  target: 'node18-win-x64'
-});
-
-// macOS
-await bundleBackend({
-  ...options,
-  target: 'node18-darwin-arm64'
-});
-
-// Linux
-await bundleBackend({
-  ...options,
-  target: 'node18-linux-x64'
-});
-```
-
-### Development vs Production
+## Development vs Production
 
 Handle different environments:
 
@@ -407,7 +367,3 @@ await bundleBackend({
 6. **Keep native modules minimal** to reduce complexity
 7. **Version your bundles** for easier debugging
 8. **Monitor bundle size** to ensure reasonable download sizes
-
-## API Reference
-
-See the [API documentation](./api/desktop.md) for detailed method signatures and options.

@@ -9,8 +9,6 @@ import { Command } from "commander";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import { buildTauriCommand } from "./commands/buildTauri.js";
-
 // Get version from package.json
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -23,9 +21,6 @@ program
   .name("app-framework")
   .description("Node.js Application Framework CLI")
   .version(packageJson.version);
-
-// Add commands
-program.addCommand(buildTauriCommand);
 
 // Parse arguments
 program.parse(process.argv);

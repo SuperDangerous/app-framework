@@ -5,7 +5,7 @@ import { mkdirSync } from "fs";
 /**
  * Get the appropriate data directory for the application.
  *
- * In desktop app mode (Tauri/Electron):
+ * In desktop app mode (Electron):
  * - macOS: ~/Library/Application Support/{appId}
  * - Windows: %APPDATA%/{appName}
  * - Linux: ~/.local/share/{appName}
@@ -19,12 +19,11 @@ import { mkdirSync } from "fs";
  */
 export function getAppDataPath(appId: string, appName: string): string {
   // Check if running in a desktop app environment
-  const isTauriProduction = process.env.TAURI === "1";
-  const isElectron = process.versions?.electron;
+  const isElectron = process.versions?.electron || process.env.ELECTRON_RUNNING === "true";
   const isDevelopment = process.env.NODE_ENV === "development";
 
   // In development mode, always use local paths unless explicitly forced
-  const isDesktopApp = !isDevelopment && (isTauriProduction || isElectron);
+  const isDesktopApp = !isDevelopment && isElectron;
 
   if (isDesktopApp) {
     // Use platform-specific app data directories
@@ -122,17 +121,16 @@ export function getCachePath(appId: string, appName: string): string {
 }
 
 /**
- * Check if the application is running in desktop mode (Tauri or Electron).
+ * Check if the application is running in desktop mode (Electron).
  *
  * @returns True if running as a desktop app, false otherwise
  */
 export function isDesktopApp(): boolean {
   const isDevelopment = process.env.NODE_ENV === "development";
-  const isTauriProduction = process.env.TAURI === "1";
-  const isElectron = !!process.versions?.electron;
+  const isElectron = !!process.versions?.electron || process.env.ELECTRON_RUNNING === "true";
 
   // In development mode, consider it a desktop app only if explicitly set
-  return !isDevelopment && (isTauriProduction || isElectron);
+  return !isDevelopment && isElectron;
 }
 
 /**

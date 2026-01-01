@@ -1,6 +1,6 @@
 /**
  * Desktop Bundler Module
- * Handles bundling Node.js backends for Tauri desktop applications
+ * Handles bundling Node.js backends for Electron desktop applications
  */
 
 import * as esbuild from "esbuild";
@@ -206,7 +206,7 @@ process.env.DESKTOP_MODE = 'true';
 
 // Set data directory to app data location
 if (!process.env.DATA_DIR) {
-  // In production, this will be set by Tauri
+  // In production, this will be set by Electron
   // For testing, use a local data directory
   process.env.DATA_DIR = ${format === "esm" ? "join" : "path.join"}(__dirname, 'data');
 }
@@ -265,200 +265,7 @@ export async function bundleDependencies(
   await remove(tempDir);
 }
 
-/**
- * Create Tauri configuration for desktop app
- */
-export async function createTauriConfig(
-  projectDir: string,
-  appName: string,
-  version: string,
-  identifier: string,
-): Promise<void> {
-  const tauriDir = path.join(projectDir, "src-tauri");
-  await ensureDir(tauriDir);
-
-  const config = {
-    $schema:
-      "https://raw.githubusercontent.com/tauri-apps/tauri/dev/tooling/cli/schema.json",
-    productName: appName,
-    version: version,
-    identifier: identifier,
-    build: {
-      frontendDist: "../web/dist",
-      devUrl: "http://localhost:5173",
-      beforeDevCommand: "npm run dev:web",
-      beforeBuildCommand: "npm run build:web && npm run bundle:backend",
-    },
-    app: {
-      windows: [
-        {
-          title: appName,
-          width: 1400,
-          height: 900,
-          resizable: true,
-          fullscreen: false,
-          center: true,
-          minWidth: 1024,
-          minHeight: 600,
-        },
-      ],
-      security: {
-        csp: null,
-      },
-      trayIcon: {
-        iconPath: "icons/icon.png",
-        menuOnLeftClick: false,
-        tooltip: appName,
-      },
-    },
-    bundle: {
-      active: true,
-      targets: "all",
-      icon: [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.icns",
-        "icons/icon.ico",
-      ],
-      resources: ["resources/**/*"],
-      copyright: `© ${new Date().getFullYear()} EpiSensor`,
-      category: "DeveloperTool",
-      shortDescription: `${appName} Desktop Application`,
-      longDescription: `${appName} - A cross-platform desktop application built with Tauri`,
-    },
-    plugins: {
-      updater: {
-        active: false,
-      },
-    },
-  };
-
-  await writeJson(path.join(tauriDir, "tauri.conf.json"), config, {
-    spaces: 2,
-  });
-
-  logger.info(`Created Tauri configuration at ${tauriDir}/tauri.conf.json`);
-}
-
-/**
- * Initialize Tauri project structure
- */
-export async function initializeTauriProject(
-  projectDir: string,
-): Promise<void> {
-  const tauriDir = path.join(projectDir, "src-tauri");
-
-  // Create directory structure
-  await ensureDir(path.join(tauriDir, "src"));
-  await ensureDir(path.join(tauriDir, "icons"));
-  await ensureDir(path.join(tauriDir, "resources"));
-
-  // Create main.rs with backend integration
-  const mainRs = `// Prevents additional console window on Windows in release
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-
-use std::process::Command;
-use tauri::Manager;
-
-#[tauri::command]
-fn start_backend(app_handle: tauri::AppHandle) -> Result<String, String> {
-    let resource_path = app_handle
-        .path()
-        .resource_dir()
-        .map_err(|e| e.to_string())?;
-    
-    let backend_path = resource_path.join("resources/backend/start-backend.js");
-    
-    // Start backend process
-    Command::new("node")
-        .arg(backend_path)
-        .spawn()
-        .map_err(|e| e.to_string())?;
-    
-    Ok("Backend started successfully".to_string())
-}
-
-#[tauri::command]
-fn get_backend_status() -> String {
-    "Backend running in bundled mode".to_string()
-}
-
-#[tauri::command]
-fn get_api_url() -> String {
-    std::env::var("API_URL").unwrap_or_else(|_| "http://localhost:8080".to_string())
-}
-
-fn main() {
-    tauri::Builder::default()
-        .plugin(tauri_plugin_shell::init())
-        .setup(|app| {
-            // Start backend on app startup
-            let app_handle = app.handle().clone();
-            tauri::async_runtime::spawn(async move {
-                if let Err(e) = start_backend(app_handle) {
-                    eprintln!("Failed to start backend: {}", e);
-                }
-            });
-            
-            #[cfg(debug_assertions)]
-            {
-                if let Some(window) = app.get_webview_window("main") {
-                    window.open_devtools();
-                }
-            }
-            
-            Ok(())
-        })
-        .invoke_handler(tauri::generate_handler![
-            get_backend_status,
-            get_api_url
-        ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
-}
-`;
-
-  await writeFile(path.join(tauriDir, "src", "main.rs"), mainRs);
-
-  // Create Cargo.toml
-  const cargoToml = `[package]
-name = "app"
-version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
-edition = "2021"
-
-[build-dependencies]
-tauri-build = { version = "2", features = [] }
-
-[dependencies]
-tauri = { version = "2", features = [] }
-tauri-plugin-shell = "2"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-
-[features]
-default = ["custom-protocol"]
-custom-protocol = ["tauri/custom-protocol"]
-`;
-
-  await writeFile(path.join(tauriDir, "Cargo.toml"), cargoToml);
-
-  // Create build.rs
-  const buildRs = `fn main() {
-    tauri_build::build()
-}
-`;
-
-  await writeFile(path.join(tauriDir, "build.rs"), buildRs);
-
-  logger.info(`Initialized Tauri project structure at ${tauriDir}`);
-}
-
 export default {
   bundleBackend,
   bundleDependencies,
-  createTauriConfig,
-  initializeTauriProject,
 };
