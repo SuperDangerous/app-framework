@@ -99,7 +99,6 @@ export {
 
 // Configuration management - use SettingsService instead
 
-
 // Settings Schema exports - Consolidated implementation
 export {
   createSettingsSchema,

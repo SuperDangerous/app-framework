@@ -173,7 +173,11 @@ export class StandardServer {
 
       // Initialize the logger first to ensure file output works
       const logger = getLogger;
-      if (logger && typeof logger.isInitialized === "function" && !logger.isInitialized()) {
+      if (
+        logger &&
+        typeof logger.isInitialized === "function" &&
+        !logger.isInitialized()
+      ) {
         // Use proper logs directory for desktop apps
         const logsDir = this.config.enableDesktopIntegration
           ? getLogsPath(this.config.appId!, this.config.appName)
@@ -211,7 +215,6 @@ export class StandardServer {
 
       // Setup error handlers (should be last)
       this.setupErrorHandlers();
-
     } catch (_error: any) {
       ensureLogger().error("Server initialization failed:", _error);
       this.isInitialized = false;
@@ -402,46 +405,46 @@ export class StandardServer {
 
       try {
         this.httpServer.listen(port, host, async () => {
-        // Display banner only after successful binding
-        // Note: In production, webPort is typically not used because the API server
-        // serves the UI assets directly from the main port. However, if webPort
-        // is explicitly configured, respect it.
+          // Display banner only after successful binding
+          // Note: In production, webPort is typically not used because the API server
+          // serves the UI assets directly from the main port. However, if webPort
+          // is explicitly configured, respect it.
 
-        // Only display banner if not suppressed
-        if (process.env.SUPPRESS_STARTUP_BANNER !== "true") {
-          displayStartupBanner({
-            appName: this.config.appName,
-            appVersion: this.config.appVersion,
-            description: this.config.description,
-            port: this.config.port!,
-            webPort: this.config.webPort, // Pass the actual configured webPort
-            environment: this.config.environment,
-            startTime: this.startTime,
-          });
-        }
-
-        // Call custom start handler if provided
-        if (this.config.onStart) {
-          try {
-            await this.config.onStart();
-          } catch (_error) {
-            const error =
-              _error instanceof Error ? _error : new Error(String(_error));
-            ensureLogger().error("Custom start handler failed:", error);
-            if (exitOnError) {
-              process.exit(1);
-            }
-            reject(error);
-            return;
+          // Only display banner if not suppressed
+          if (process.env.SUPPRESS_STARTUP_BANNER !== "true") {
+            displayStartupBanner({
+              appName: this.config.appName,
+              appVersion: this.config.appVersion,
+              description: this.config.description,
+              port: this.config.port!,
+              webPort: this.config.webPort, // Pass the actual configured webPort
+              environment: this.config.environment,
+              startTime: this.startTime,
+            });
           }
-        }
 
-        if (this.config.webPort) {
-          ensureLogger().info(`Web UI Port: ${this.config.webPort}`);
-        }
+          // Call custom start handler if provided
+          if (this.config.onStart) {
+            try {
+              await this.config.onStart();
+            } catch (_error) {
+              const error =
+                _error instanceof Error ? _error : new Error(String(_error));
+              ensureLogger().error("Custom start handler failed:", error);
+              if (exitOnError) {
+                process.exit(1);
+              }
+              reject(error);
+              return;
+            }
+          }
 
-        // Bind graceful shutdown signals once per instance
-        this.bindShutdownSignals();
+          if (this.config.webPort) {
+            ensureLogger().info(`Web UI Port: ${this.config.webPort}`);
+          }
+
+          // Bind graceful shutdown signals once per instance
+          this.bindShutdownSignals();
 
           resolve();
         });

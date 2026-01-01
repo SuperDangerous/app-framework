@@ -19,7 +19,8 @@ import { mkdirSync } from "fs";
  */
 export function getAppDataPath(appId: string, appName: string): string {
   // Check if running in a desktop app environment
-  const isElectron = process.versions?.electron || process.env.ELECTRON_RUNNING === "true";
+  const isElectron =
+    process.versions?.electron || process.env.ELECTRON_RUNNING === "true";
   const isDevelopment = process.env.NODE_ENV === "development";
 
   // In development mode, always use local paths unless explicitly forced
@@ -127,7 +128,8 @@ export function getCachePath(appId: string, appName: string): string {
  */
 export function isDesktopApp(): boolean {
   const isDevelopment = process.env.NODE_ENV === "development";
-  const isElectron = !!process.versions?.electron || process.env.ELECTRON_RUNNING === "true";
+  const isElectron =
+    !!process.versions?.electron || process.env.ELECTRON_RUNNING === "true";
 
   // In development mode, consider it a desktop app only if explicitly set
   return !isDevelopment && isElectron;

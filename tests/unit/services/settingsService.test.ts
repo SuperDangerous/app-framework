@@ -220,12 +220,15 @@ describe('SettingsService', () => {
     });
 
     test('creates directory if not exists', async () => {
-      const service = new SettingsService({ storagePath: '/new/path/settings.json' });
+      const storagePath = '/new/path/settings.json';
+      const service = new SettingsService({ storagePath });
       mockFs.existsSync.mockReturnValue(false);
-      
+
       await service.save();
-      
-      expect(mockFs.promises.mkdir).toHaveBeenCalledWith('/new/path', { recursive: true });
+
+      // Use path.resolve/dirname to match actual implementation behavior (handles Windows drive letters)
+      const expectedDir = path.dirname(path.resolve(storagePath));
+      expect(mockFs.promises.mkdir).toHaveBeenCalledWith(expectedDir, { recursive: true });
     });
 
     test('encrypts sensitive fields when encryption enabled', async () => {

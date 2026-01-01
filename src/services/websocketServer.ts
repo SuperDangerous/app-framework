@@ -47,7 +47,9 @@ class WebSocketServer {
     this.simulatorSubscriptions = new Map();
   }
 
-  initialize(opts?: { broadcastHook?: (event: string, data: any) => void }): void {
+  initialize(opts?: {
+    broadcastHook?: (event: string, data: any) => void;
+  }): void {
     if (this.io) {
       if (opts?.broadcastHook) {
         this.broadcastHook = opts.broadcastHook;
@@ -358,7 +360,10 @@ let wsServer: WebSocketServer | null = null;
  */
 export function createWebSocketServer(
   httpServer: HTTPServer,
-  opts?: { reset?: boolean; broadcastHook?: (event: string, data: any) => void },
+  opts?: {
+    reset?: boolean;
+    broadcastHook?: (event: string, data: any) => void;
+  },
 ): WebSocketServer {
   // Initialize logger if not already done
   if (!logger) {

@@ -209,7 +209,12 @@ npm install @episensor/app-framework
 import { StandardServer, createLogger } from "@episensor/app-framework";
 
 // Frontend UI components
-import { Button, Card, useSocketIO, useConnectionStatus } from "@episensor/app-framework/ui";
+import {
+  Button,
+  Card,
+  useSocketIO,
+  useConnectionStatus,
+} from "@episensor/app-framework/ui";
 ```
 
 ````
@@ -366,7 +371,10 @@ console.log(
 ### Settings Management
 
 ```typescript
-import { SettingsService, CommonSettingsCategories } from "@episensor/app-framework";
+import {
+  SettingsService,
+  CommonSettingsCategories,
+} from "@episensor/app-framework";
 
 // Initialize settings service
 const settings = new SettingsService({

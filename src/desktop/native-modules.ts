@@ -15,7 +15,7 @@ import {
 import path from "path";
 import { execSync } from "child_process";
 import { createLogger } from "../core/logger.js";
-const logger = createLogger('native-modules');
+const logger = createLogger("native-modules");
 
 export interface NativeModuleConfig {
   /**
