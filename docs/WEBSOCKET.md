@@ -2,7 +2,7 @@
 
 ## Overview
 
-The EpiSensor App Framework provides a comprehensive WebSocket implementation built on Socket.IO for real-time bidirectional communication between server and clients. This enables live data streaming, instant updates, and responsive user interfaces.
+The SuperDangerous App Framework provides a comprehensive WebSocket implementation built on Socket.IO for real-time bidirectional communication between server and clients. This enables live data streaming, instant updates, and responsive user interfaces.
 
 ## Table of Contents
 
@@ -32,7 +32,7 @@ The EpiSensor App Framework provides a comprehensive WebSocket implementation bu
 ### Basic Initialization
 
 ```typescript
-import { StandardServer, createWebSocketServer } from '@episensor/app-framework';
+import { StandardServer, createWebSocketServer } from '@superdangerous/app-framework';
 
 const server = new StandardServer({
   appName: 'My App',
@@ -51,7 +51,7 @@ await server.start();
 ### Manual WebSocket Setup
 
 ```typescript
-import { createWebSocketServer, getWebSocketServer } from '@episensor/app-framework';
+import { createWebSocketServer, getWebSocketServer } from '@superdangerous/app-framework';
 import { createServer } from 'http';
 
 const httpServer = createServer(app);
@@ -150,7 +150,7 @@ The framework uses consistent event naming patterns:
 ### Broadcasting Events
 
 ```typescript
-import { getWebSocketServer } from '@episensor/app-framework';
+import { getWebSocketServer } from '@superdangerous/app-framework';
 
 const ws = getWebSocketServer();
 
@@ -182,7 +182,7 @@ ws.broadcastDataUpdate('sensors', {
 ### Typed Events
 
 ```typescript
-import { WebSocketEventManager, TypedEventEmitter } from '@episensor/app-framework';
+import { WebSocketEventManager, TypedEventEmitter } from '@superdangerous/app-framework';
 
 // Define your event types
 interface AppEvents {
@@ -213,7 +213,7 @@ events.emit('sensor:reading', {
 ### Server-Side Subscription Handling
 
 ```typescript
-import { getWebSocketServer } from '@episensor/app-framework';
+import { getWebSocketServer } from '@superdangerous/app-framework';
 
 const ws = getWebSocketServer();
 
@@ -292,7 +292,7 @@ class SubscriptionManager {
 ### useSocketIO Hook
 
 ```tsx
-import { useSocketIO } from '@episensor/app-framework/ui';
+import { useSocketIO } from '@superdangerous/app-framework/ui';
 
 function MyComponent() {
   const { 
@@ -332,7 +332,7 @@ function MyComponent() {
 ### useSocketIOSubscription Hook
 
 ```tsx
-import { useSocketIOSubscription } from '@episensor/app-framework/ui';
+import { useSocketIOSubscription } from '@superdangerous/app-framework/ui';
 
 function SimulatorDisplay({ simulatorId }) {
   const { data, loading, error } = useSocketIOSubscription(
@@ -362,7 +362,7 @@ function SimulatorDisplay({ simulatorId }) {
 ### Connection Status Component
 
 ```tsx
-import { ConnectionStatus } from '@episensor/app-framework/ui';
+import { ConnectionStatus } from '@superdangerous/app-framework/ui';
 
 function Header() {
   return (
@@ -579,7 +579,7 @@ setInterval(() => {
 
 ```typescript
 // Server
-import { StandardServer, getWebSocketServer } from '@episensor/app-framework';
+import { StandardServer, getWebSocketServer } from '@superdangerous/app-framework';
 
 const server = new StandardServer({
   appName: 'Real-Time Dashboard',
@@ -608,7 +608,7 @@ setInterval(async () => {
 ```tsx
 // Client (React)
 import React, { useState, useEffect } from 'react';
-import { useSocketIO } from '@episensor/app-framework/ui';
+import { useSocketIO } from '@superdangerous/app-framework/ui';
 import { LineChart, Line, XAxis, YAxis } from 'recharts';
 
 function Dashboard() {

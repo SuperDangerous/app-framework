@@ -7,7 +7,7 @@ import { createLogger } from "../core/index.js";
 import { pathExists, readFile } from "../utils/fs-utils.js";
 import path from "path";
 
-let pkg: any = { version: "3.6.0", name: "@episensor/app-framework" };
+let pkg: any = { version: "1.0.0", name: "@superdangerous/app-framework" };
 
 // Initialize package info asynchronously
 (async () => {
@@ -77,7 +77,7 @@ class UpdateService {
 
   constructor() {
     this.currentVersion = pkg.version;
-    this.githubRepo = "episensor/device-simulator"; // Update with actual repo
+    this.githubRepo = "SuperDangerous/app-framework"; // Update with actual repo
     this.checkInterval = 24 * 60 * 60 * 1000; // Check daily
     this.lastCheck = null;
     this.updateAvailable = false;

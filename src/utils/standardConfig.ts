@@ -1,6 +1,6 @@
 /**
  * Standard Configuration Loader
- * Provides consistent config loading across all EpiSensor applications
+ * Provides consistent config loading across all SuperDangerous applications
  */
 
 import { readFileSync, existsSync } from "fs";
@@ -74,7 +74,7 @@ export function loadStandardConfig(dirname: string): StandardAppConfig {
         process.env.APP_NAME ||
         appConfig.app?.name ||
         packageJson.name ||
-        "EpiSensor App",
+        "SuperDangerous App",
       version: appConfig.app?.version || packageJson.version || "1.0.0",
       title:
         process.env.APP_TITLE ||
@@ -85,7 +85,7 @@ export function loadStandardConfig(dirname: string): StandardAppConfig {
           ?.replace(/@[^/]+\//, "")
           .replace(/-/g, " ")
           .replace(/\b\w/g, (l: string) => l.toUpperCase()) ||
-        "EpiSensor Application",
+        "SuperDangerous Application",
       description:
         process.env.APP_DESCRIPTION ||
         appConfig.app?.description ||

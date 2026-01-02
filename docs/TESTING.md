@@ -2,7 +2,7 @@
 
 ## Overview
 
-All EpiSensor applications should follow these standardized testing practices using utilities provided by `@episensor/app-framework`.
+All SuperDangerous applications should follow these standardized testing practices using utilities provided by `@superdangerous/app-framework`.
 
 ## Test Categories
 
@@ -47,7 +47,7 @@ All applications should use the framework's `TestServer` utility for consistent 
 
 ```javascript
 // tests/setup.js
-import { setupTestServer, teardownTestServer, getTestServer } from '@episensor/app-framework';
+import { setupTestServer, teardownTestServer, getTestServer } from '@superdangerous/app-framework';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -208,7 +208,7 @@ All applications should maintain minimum coverage:
 
 To migrate existing tests to use framework utilities:
 
-1. Install latest `@episensor/app-framework`
+1. Install latest `@superdangerous/app-framework`
 2. Replace custom server management with `TestServer`
 3. Update `setup.js` to use `setupTestServer` and `teardownTestServer`
 4. Remove redundant test utilities that framework provides

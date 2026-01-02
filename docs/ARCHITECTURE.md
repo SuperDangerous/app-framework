@@ -2,7 +2,7 @@
 
 ## Overview
 
-The EpiSensor Application Framework is a comprehensive full-stack TypeScript framework designed for building industrial IoT applications. It provides a robust foundation with built-in support for real-time communication, desktop deployment via Tauri, and extensive device simulation capabilities.
+The SuperDangerous Application Framework is a comprehensive full-stack TypeScript framework designed for building industrial IoT applications. It provides a robust foundation with built-in support for real-time communication, desktop deployment via Tauri, and extensive device simulation capabilities.
 
 ## Architecture Principles
 

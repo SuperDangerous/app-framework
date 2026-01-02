@@ -1,8 +1,8 @@
 /**
- * EpiSensor UI Framework - Shared Style Constants
+ * SuperDangerous UI Framework - Shared Style Constants
  * Reusable Tailwind class combinations for consistency
  * 
- * @module @episensor/ui-framework/styles
+ * @module @superdangerous/ui-framework/styles
  */
 
 export const cardStyles = {

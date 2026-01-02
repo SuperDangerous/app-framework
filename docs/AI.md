@@ -18,7 +18,7 @@ In your application's startup code:
 
 ```typescript
 // src/server.ts
-import { AIService } from '@episensor/app-framework/services';
+import { AIService } from '@superdangerous/app-framework/services';
 
 const aiService = new AIService();
 
@@ -279,7 +279,7 @@ export const appAiService = new AppAiService();
 ```typescript
 // src/routes/devices.ts
 import { Router } from 'express';
-import { validate } from '@episensor/app-framework/middleware';
+import { validate } from '@superdangerous/app-framework/middleware';
 import { z } from 'zod';
 import { appAiService } from '../services/appAiService';
 

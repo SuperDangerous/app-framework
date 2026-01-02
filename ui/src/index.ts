@@ -1,5 +1,5 @@
 /**
- * EpiSensor App Framework - UI Components
+ * SuperDangerous App Framework - UI Components
  * Export all UI components and utilities
  */
 

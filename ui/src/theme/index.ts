@@ -1,7 +1,7 @@
 /**
- * EpiSensor UI Framework - Centralized Theme Configuration
+ * SuperDangerous UI Framework - Centralized Theme Configuration
  * 
- * @module @episensor/ui-framework/theme
+ * @module @superdangerous/ui-framework/theme
  */
 
 export const theme = {

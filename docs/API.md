@@ -21,7 +21,7 @@
 #### Frontend API Communications
 **✅ DO**: Use `apiRequest` for ALL frontend API calls
 ```typescript
-import { apiRequest } from '@episensor/app-framework/ui';
+import { apiRequest } from '@superdangerous/app-framework/ui';
 
 // Correct - includes error handling, loading states, and API readiness checks
 const response = await apiRequest('/api/devices', {
@@ -43,7 +43,7 @@ const response = await fetch('/api/devices', {
 #### WebSocket Communication
 **✅ DO**: Use the `useSocketIO` hook for WebSocket connections
 ```typescript
-import { useSocketIO } from '@episensor/app-framework/ui';
+import { useSocketIO } from '@superdangerous/app-framework/ui';
 
 const { socket, connected } = useSocketIO();
 
@@ -57,7 +57,7 @@ useEffect(() => {
 
 Or use the generic `useSocketIO` hook for custom Socket.IO contexts:
 ```typescript
-import { useSocketIO } from '@episensor/app-framework/ui';
+import { useSocketIO } from '@superdangerous/app-framework/ui';
 
 const { socket, connected, on, off, emit } = useSocketIO(SocketContext);
 
@@ -71,7 +71,7 @@ useEffect(() => {
 #### File Operations
 **✅ DO**: Use `SecureFileHandler` for all file operations
 ```typescript
-import { getSecureFileHandler } from '@episensor/app-framework/core';
+import { getSecureFileHandler } from '@superdangerous/app-framework/core';
 
 const fileHandler = getSecureFileHandler();
 await fileHandler.saveFile('config.json', data, 'data');
@@ -80,7 +80,7 @@ await fileHandler.saveFile('config.json', data, 'data');
 #### Validation
 **✅ DO**: Use the framework's validation middleware with Zod
 ```typescript
-import { validate } from '@episensor/app-framework/middleware';
+import { validate } from '@superdangerous/app-framework/middleware';
 import { z } from 'zod';
 
 const deviceSchema = z.object({
@@ -95,7 +95,7 @@ router.post('/devices', validate(deviceSchema), handler);
 **✅ DO**: Combine Zustand with `apiRequest` for consistent state management
 ```typescript
 import { create } from 'zustand';
-import { apiRequest } from '@episensor/app-framework/ui';
+import { apiRequest } from '@superdangerous/app-framework/ui';
 
 const useDeviceStore = create((set) => ({
   devices: [],
@@ -120,10 +120,10 @@ const useDeviceStore = create((set) => ({
 
 ### StandardServer
 
-Simplified server implementation for all EpiSensor applications.
+Simplified server implementation for all SuperDangerous applications.
 
 ```typescript
-import { StandardServer, createStandardServer } from '@episensor/app-framework';
+import { StandardServer, createStandardServer } from '@superdangerous/app-framework';
 ```
 
 #### Constructor
@@ -183,7 +183,7 @@ await server.start();
 Production-grade logging with file rotation and compression.
 
 ```typescript
-import { getLogger } from '@episensor/app-framework';
+import { getLogger } from '@superdangerous/app-framework';
 ```
 
 #### Initialization
@@ -234,7 +234,7 @@ const logs = await getLogger().readLogFile('api.log', {
 Simple console logger with colours and levels.
 
 ```typescript
-import { createLogger, Logger } from '@episensor/app-framework';
+import { createLogger, Logger } from '@superdangerous/app-framework';
 ```
 
 #### Creating Loggers
@@ -261,7 +261,7 @@ const level = logger.getLogLevel();
 #### Pre-configured Loggers
 
 ```typescript
-import { loggers } from '@episensor/app-framework';
+import { loggers } from '@superdangerous/app-framework';
 
 loggers.system.info('System message');
 loggers.api.info('API request');
@@ -283,7 +283,7 @@ import {
   findAvailablePort,
   checkRequiredPorts,
   waitForPort
-} from '@episensor/app-framework';
+} from '@superdangerous/app-framework';
 ```
 
 #### Functions
@@ -318,7 +318,7 @@ const available = await waitForPort(3000, { timeout: 5000 });
 Safe file operations with validation and organization.
 
 ```typescript
-import { getSecureFileHandler } from '@episensor/app-framework';
+import { getSecureFileHandler } from '@superdangerous/app-framework';
 
 const fileHandler = getSecureFileHandler();
 ```
@@ -374,7 +374,7 @@ const safe = fileHandler.sanitizeFilename('../../../etc/passwd');
 Real-time bidirectional communication. See [WebSocket Guide](./WEBSOCKET.md) for complete documentation.
 
 ```typescript
-import { createWebSocketServer, getWebSocketServer } from '@episensor/app-framework';
+import { createWebSocketServer, getWebSocketServer } from '@superdangerous/app-framework';
 ```
 
 #### Quick Reference
@@ -403,7 +403,7 @@ const clients = ws.getClients();
 Advanced configuration with validation and hot-reloading.
 
 ```typescript
-import { ConfigManager } from '@episensor/app-framework';
+import { ConfigManager } from '@superdangerous/app-framework';
 ```
 
 #### Setup
@@ -456,7 +456,7 @@ config.mapEnvironment({
 Application settings with UI generation.
 
 ```typescript
-import { SettingsService } from '@episensor/app-framework';
+import { SettingsService } from '@superdangerous/app-framework';
 ```
 
 #### Setup
@@ -522,7 +522,7 @@ const errors = settings.validateAll();
 Background job processing with persistence.
 
 ```typescript
-import { QueueService } from '@episensor/app-framework';
+import { QueueService } from '@superdangerous/app-framework';
 ```
 
 #### Setup
@@ -596,7 +596,7 @@ await queue.stop();
 Multi-provider AI integration with caching.
 
 ```typescript
-import { AIService } from '@episensor/app-framework';
+import { AIService } from '@superdangerous/app-framework';
 ```
 
 #### Setup
@@ -657,7 +657,7 @@ import {
   createLoginHandler,
   createLogoutHandler,
   requireRole 
-} from '@episensor/app-framework';
+} from '@superdangerous/app-framework';
 ```
 
 #### Setup
@@ -700,7 +700,7 @@ app.get('/admin', requireRole('admin'), (req, res) => {
 Request validation using Zod schemas with full TypeScript type inference.
 
 ```typescript
-import { validate, validateParams, validateQuery, schemas } from '@episensor/app-framework';
+import { validate, validateParams, validateQuery, schemas } from '@superdangerous/app-framework';
 import { z } from 'zod';
 ```
 
@@ -766,7 +766,7 @@ schemas.coordinates  // { lat, lng }
 Express session configuration with Redis support.
 
 ```typescript
-import { configureSession, createRedisStore, sessionUtils } from '@episensor/app-framework';
+import { configureSession, createRedisStore, sessionUtils } from '@superdangerous/app-framework';
 ```
 
 #### Setup
@@ -819,7 +819,7 @@ await sessionUtils.regenerate(req);
 Kubernetes-compatible health endpoints.
 
 ```typescript
-import { createHealthCheck, healthCheck } from '@episensor/app-framework';
+import { createHealthCheck, healthCheck } from '@superdangerous/app-framework';
 ```
 
 #### Setup
@@ -855,7 +855,7 @@ app.get('/health/ready', health.readiness);
 Secure file upload handling.
 
 ```typescript
-import { createFileUpload, parseFormData, sendFile } from '@episensor/app-framework';
+import { createFileUpload, parseFormData, sendFile } from '@superdangerous/app-framework';
 ```
 
 #### Setup
@@ -903,7 +903,7 @@ app.get('/files/:id', (req, res) => {
 Automatic API documentation generation.
 
 ```typescript
-import { setupOpenAPIDocumentation, ApiOperation } from '@episensor/app-framework';
+import { setupOpenAPIDocumentation, ApiOperation } from '@superdangerous/app-framework';
 ```
 
 #### Setup
@@ -959,7 +959,7 @@ import {
   errorResponse,
   paginatedResponse,
   ApiResponse 
-} from '@episensor/app-framework';
+} from '@superdangerous/app-framework';
 ```
 
 #### Usage
@@ -989,7 +989,7 @@ res.json(paginatedResponse(items, {
 Application startup display.
 
 ```typescript
-import { displayStartupBanner } from '@episensor/app-framework';
+import { displayStartupBanner } from '@superdangerous/app-framework';
 ```
 
 #### Usage
@@ -1020,7 +1020,7 @@ displayStartupBanner({
 A comprehensive log viewer component with real-time updates, filtering, and file management.
 
 ```typescript
-import { LogViewer } from '@episensor/app-framework/ui';
+import { LogViewer } from '@superdangerous/app-framework/ui';
 
 <LogViewer
   apiUrl="/api/logs"
@@ -1052,7 +1052,7 @@ import { LogViewer } from '@episensor/app-framework/ui';
 A complete logs page with header and configured LogViewer.
 
 ```typescript
-import { LogsPage } from '@episensor/app-framework/ui';
+import { LogsPage } from '@superdangerous/app-framework/ui';
 
 <LogsPage
   apiUrl="/api/logs"
@@ -1068,7 +1068,7 @@ import { LogsPage } from '@episensor/app-framework/ui';
 Debounces a value with a specified delay. Useful for search inputs, API calls, and other scenarios where you want to delay execution.
 
 ```typescript
-import { useDebounce } from '@episensor/app-framework/ui';
+import { useDebounce } from '@superdangerous/app-framework/ui';
 
 const SearchComponent = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -1125,10 +1125,10 @@ const { data, loading, error } = useSocketIOSubscription(
 
 ### Theme System
 
-Centralised theme configuration for EpiSensor applications:
+Centralised theme configuration for SuperDangerous applications:
 
 ```typescript
-import { theme, getCSSVariables } from '@episensor/app-framework/ui';
+import { theme, getCSSVariables } from '@superdangerous/app-framework/ui';
 
 // Access theme values
 const primaryColor = theme.colors.primary.DEFAULT; // #E21350
@@ -1153,7 +1153,7 @@ import {
   AlertCircle,
   // ... 100+ icons available
   type LucideIcon
-} from '@episensor/app-framework/ui';
+} from '@superdangerous/app-framework/ui';
 
 // Use in components
 <Settings className="h-4 w-4" />
@@ -1170,7 +1170,7 @@ import {
   emptyStateStyles,
   activityStyles,
   statusStyles
-} from '@episensor/app-framework/ui';
+} from '@superdangerous/app-framework/ui';
 
 // Apply consistent styles
 <div className={cardStyles.interactive}>
@@ -1198,7 +1198,7 @@ import {
   Table,
   Tabs,
   // ... and many more
-} from '@episensor/app-framework/ui';
+} from '@superdangerous/app-framework/ui';
 ```
 
 ---
@@ -1253,7 +1253,7 @@ import {
   createTestServer,
   setupTestServer,
   teardownTestServer 
-} from '@episensor/app-framework';
+} from '@superdangerous/app-framework';
 ```
 
 #### Setup
@@ -1314,7 +1314,7 @@ import {
   ValidationError,
   AuthenticationError,
   NotFoundError 
-} from '@episensor/app-framework';
+} from '@superdangerous/app-framework';
 
 // Throw errors
 throw new ValidationError('Invalid input', {
@@ -1394,7 +1394,7 @@ import type {
   PaginatedResponse,
   SessionConfig,
   HealthStatus
-} from '@episensor/app-framework';
+} from '@superdangerous/app-framework';
 ```
 
 ### UI Types
@@ -1409,7 +1409,7 @@ import type {
   AlertType,
   SettingCategory,
   LogEntry
-} from '@episensor/app-framework/ui';
+} from '@superdangerous/app-framework/ui';
 ```
 
 ---

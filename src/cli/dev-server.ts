@@ -62,7 +62,7 @@ class DevServerOrchestrator {
       : packageJson.devServer?.backendPort || 3000;
 
     this.config = {
-      appName: packageJson.name || "EpiSensor App",
+      appName: packageJson.name || "SuperDangerous App",
       appVersion: packageJson.version || "0.0.0",
       packageName: packageJson.name,
       description: packageJson.description,

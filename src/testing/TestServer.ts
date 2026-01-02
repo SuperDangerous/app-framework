@@ -1,6 +1,6 @@
 /**
  * Test Server Utility
- * Provides standardized test server management for all EpiSensor applications
+ * Provides standardized test server management for all SuperDangerous applications
  */
 
 import { spawn, ChildProcess } from "child_process";

@@ -390,7 +390,7 @@ jobs:
           - Version bump: ${{ steps.version.outputs.bump }}
           
           ## Package
-          - Framework package: episensor-app-framework-${{ steps.bump.outputs.new_version }}.tgz
+          - Framework package: superdangerous-app-framework-${{ steps.bump.outputs.new_version }}.tgz
           
         files: '*.tgz'
         draft: false

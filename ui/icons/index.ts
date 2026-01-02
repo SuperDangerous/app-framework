@@ -1,8 +1,8 @@
 /**
- * EpiSensor UI Framework - Centralized Icon Exports
+ * SuperDangerous UI Framework - Centralized Icon Exports
  * Using Lucide React icons with outlined style as standard
  * 
- * @module @episensor/ui-framework/icons
+ * @module @superdangerous/ui-framework/icons
  */
 
 export {

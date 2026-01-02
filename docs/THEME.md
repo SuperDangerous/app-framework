@@ -2,7 +2,7 @@
 
 ## Overview
 
-The EpiSensor App Framework provides a centralised theme system that ensures consistent visual design across all applications. Currently, there is one standard EpiSensor theme, but the architecture supports multiple themes if needed in the future.
+The SuperDangerous App Framework provides a centralised theme system that ensures consistent visual design across all applications. Currently, there is one standard SuperDangerous theme, but the architecture supports multiple themes if needed in the future.
 
 ## Theme Structure
 
@@ -12,7 +12,7 @@ The theme system (`ui/theme/index.ts`) provides:
 ```typescript
 theme.colors = {
   primary: {
-    DEFAULT: '#E21350',  // EpiSensor brand pink
+    DEFAULT: '#E21350',  // SuperDangerous brand pink
     hover: '#c01144',
     light: '#ff4d7d',
     dark: '#a00e3a',
@@ -33,11 +33,11 @@ theme.colors = {
 
 ## Theme Switching
 
-While currently we have one EpiSensor theme, the system supports theme switching:
+While currently we have one SuperDangerous theme, the system supports theme switching:
 
 ### CSS Variables Approach
 ```typescript
-import { getCSSVariables } from '@episensor/app-framework/ui';
+import { getCSSVariables } from '@superdangerous/app-framework/ui';
 
 // Get CSS variables for current theme
 const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -52,13 +52,13 @@ Object.entries(cssVars).forEach(([key, value]) => {
 ### React Context Approach (for future multi-theme support)
 ```typescript
 // Could be extended to support multiple themes
-type ThemeName = 'episensor' | 'episensor-dark';
+type ThemeName = 'superdangerous' | 'superdangerous-dark';
 
 const ThemeContext = React.createContext<{
   theme: ThemeName;
   setTheme: (theme: ThemeName) => void;
 }>({
-  theme: 'episensor',
+  theme: 'superdangerous',
   setTheme: () => {},
 });
 ```
@@ -67,7 +67,7 @@ const ThemeContext = React.createContext<{
 
 ### In React Components
 ```typescript
-import { theme } from '@episensor/app-framework/ui';
+import { theme } from '@superdangerous/app-framework/ui';
 
 // Direct usage
 const StyledDiv = styled.div`
@@ -77,7 +77,7 @@ const StyledDiv = styled.div`
 `;
 
 // With Tailwind (recommended)
-import { cardStyles } from '@episensor/app-framework/ui';
+import { cardStyles } from '@superdangerous/app-framework/ui';
 <div className={cardStyles.interactive}>...</div>
 ```
 
@@ -91,10 +91,10 @@ The theme generates CSS custom properties that can be used directly:
 }
 ```
 
-## Current Theme: EpiSensor
+## Current Theme: SuperDangerous
 
-The default and only current theme reflects the EpiSensor brand:
-- **Primary Colour**: #E21350 (EpiSensor Pink)
+The default and only current theme reflects the SuperDangerous brand:
+- **Primary Colour**: #E21350 (SuperDangerous Pink)
 - **Typography**: Inter for UI, JetBrains Mono for code
 - **Style**: Clean, modern, professional
 - **Modes**: Light and dark mode support
@@ -106,4 +106,4 @@ The architecture supports adding new themes by:
 2. Adding a theme provider/switcher component
 3. Storing theme preference in user settings
 
-Currently, this is not needed as we maintain one consistent EpiSensor brand theme.
+Currently, this is not needed as we maintain one consistent SuperDangerous brand theme.

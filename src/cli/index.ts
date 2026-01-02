@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * EpiSensor App Framework CLI
- * Provides utilities for building and managing EpiSensor applications
+ * SuperDangerous App Framework CLI
+ * Provides utilities for building and managing SuperDangerous applications
  */
 
 import { Command } from "commander";

@@ -1,8 +1,8 @@
-# EpiSensor App Development Guide
+# SuperDangerous App Development Guide
 
 ## How to Build Applications with the Framework
 
-This guide provides comprehensive instructions for both AI assistants and human developers on how to properly build applications using the EpiSensor App Framework.
+This guide provides comprehensive instructions for both AI assistants and human developers on how to properly build applications using the SuperDangerous App Framework.
 
 ## Table of Contents
 
@@ -22,14 +22,14 @@ This guide provides comprehensive instructions for both AI assistants and human 
 
 ```bash
 # Create project directory
-mkdir my-episensor-app
-cd my-episensor-app
+mkdir my-superdangerous-app
+cd my-superdangerous-app
 
 # Initialize package.json
 npm init -y
 
 # Install framework
-npm install @episensor/app-framework
+npm install @superdangerous/app-framework
 
 # Install common dependencies
 npm install express cors dotenv
@@ -40,7 +40,7 @@ npm install -D typescript @types/node @types/express nodemon
 
 ```typescript
 // src/index.ts
-import { StandardServer, createLogger } from '@episensor/app-framework';
+import { StandardServer, createLogger } from '@superdangerous/app-framework';
 import { setupRoutes } from './routes';
 import { initializeServices } from './services';
 
@@ -48,7 +48,7 @@ const logger = createLogger('App');
 
 async function main() {
   const server = new StandardServer({
-    appName: 'My EpiSensor App',
+    appName: 'My SuperDangerous App',
     appVersion: '1.0.0',
     port: parseInt(process.env.PORT || '8080'),
     webPort: parseInt(process.env.WEB_PORT || '8081'), // See PORT_STANDARDIZATION.md
@@ -100,7 +100,7 @@ main().catch(error => {
 ### Recommended Directory Layout
 
 ```
-my-episensor-app/
+my-superdangerous-app/
 ├── src/
 │   ├── api/              # API endpoints
 │   │   ├── health.ts
@@ -147,7 +147,7 @@ my-episensor-app/
 
 ```typescript
 // src/config/index.ts
-import { ConfigManager } from '@episensor/app-framework';
+import { ConfigManager } from '@superdangerous/app-framework';
 import { z } from 'zod';
 
 // Define configuration schema
@@ -191,7 +191,7 @@ export async function loadConfig() {
 
 ```typescript
 // src/services/database.ts
-import { createLogger } from '@episensor/app-framework';
+import { createLogger } from '@superdangerous/app-framework';
 import { config } from '../config';
 
 const logger = createLogger('Database');
@@ -228,7 +228,7 @@ export const db = new DatabaseService();
 ```typescript
 // src/api/users.ts
 import { Router } from 'express';
-import { validate, schemas } from '@episensor/app-framework';
+import { validate, schemas } from '@superdangerous/app-framework';
 import { z } from 'zod';
 import { db } from '../services/database';
 
@@ -274,7 +274,7 @@ export default router;
 
 ```typescript
 // src/services/realtime.ts
-import { getWebSocketServer } from '@episensor/app-framework';
+import { getWebSocketServer } from '@superdangerous/app-framework';
 import { EventEmitter } from 'events';
 
 class RealtimeService extends EventEmitter {
@@ -311,7 +311,7 @@ export const realtime = new RealtimeService();
 // ui/src/App.tsx
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import { AppLayout } from '@episensor/app-framework/ui';
+import { AppLayout } from '@superdangerous/app-framework/ui';
 import { Dashboard } from './pages/Dashboard';
 import { Settings } from './pages/Settings';
 
@@ -324,7 +324,7 @@ export function App() {
   return (
     <BrowserRouter>
       <AppLayout
-        appName="My EpiSensor App"
+        appName="My SuperDangerous App"
         appVersion="1.0.0"
         navigation={navigation}
         connectionStatusUrl="http://localhost:8080"
@@ -343,7 +343,7 @@ export function App() {
 
 ```typescript
 // src/middleware/errorHandler.ts
-import { createLogger } from '@episensor/app-framework';
+import { createLogger } from '@superdangerous/app-framework';
 import { Request, Response, NextFunction } from 'express';
 
 const logger = createLogger('ErrorHandler');
@@ -394,7 +394,7 @@ export function errorHandler(
 
 ```typescript
 // src/middleware/auth.ts
-import { createAuthMiddleware, requireRole } from '@episensor/app-framework';
+import { createAuthMiddleware, requireRole } from '@superdangerous/app-framework';
 import { userService } from '../services/users';
 
 export const auth = createAuthMiddleware({
@@ -413,7 +413,7 @@ router.get('/admin', requireRole('admin'), (req, res) => {
 
 ```typescript
 // src/services/jobs.ts
-import { QueueService } from '@episensor/app-framework';
+import { QueueService } from '@superdangerous/app-framework';
 
 const queue = new QueueService({
   concurrent: 5,
@@ -442,7 +442,7 @@ export async function scheduleEmail(data: EmailData) {
 
 ```typescript
 // src/services/settings.ts
-import { SettingsService } from '@episensor/app-framework';
+import { SettingsService } from '@superdangerous/app-framework';
 
 export const settings = new SettingsService({
   storage: 'file',
@@ -483,7 +483,7 @@ export function maintenanceCheck(req, res, next) {
 
 ```typescript
 // src/services/metrics.ts
-import { getWebSocketServer } from '@episensor/app-framework';
+import { getWebSocketServer } from '@superdangerous/app-framework';
 
 class MetricsService {
   private ws = getWebSocketServer();
@@ -545,7 +545,7 @@ type RouteHandler = (
 ### 2. Implement Proper Logging
 
 ```typescript
-import { createLogger } from '@episensor/app-framework';
+import { createLogger } from '@superdangerous/app-framework';
 
 const logger = createLogger('ServiceName');
 
@@ -597,7 +597,7 @@ if (error instanceof BusinessLogicError) {
 ### 4. Validate All Input
 
 ```typescript
-import { validate } from '@episensor/app-framework';
+import { validate } from '@superdangerous/app-framework';
 import { z } from 'zod';
 
 // Define strict schemas
@@ -657,9 +657,9 @@ const db = container.get<DatabaseService>('database');
 
 ## AI Development Instructions
 
-### For AI Assistants Building EpiSensor Apps
+### For AI Assistants Building SuperDangerous Apps
 
-When asked to create an application using the EpiSensor App Framework, follow these steps:
+When asked to create an application using the SuperDangerous App Framework, follow these steps:
 
 #### 1. Understand Requirements
 - Ask for clarification on application type (API, real-time, UI needed?)
@@ -669,7 +669,7 @@ When asked to create an application using the EpiSensor App Framework, follow th
 #### 2. Start with StandardServer
 ```typescript
 // ALWAYS use StandardServer for server initialization
-import { StandardServer } from '@episensor/app-framework';
+import { StandardServer } from '@superdangerous/app-framework';
 ```
 
 #### 3. Structure the Application
@@ -702,7 +702,7 @@ src/
 #### 6. Testing Requirements
 ```typescript
 // Always include test setup
-import { TestServer } from '@episensor/app-framework';
+import { TestServer } from '@superdangerous/app-framework';
 
 describe('API Tests', () => {
   let server: TestServer;
@@ -780,7 +780,7 @@ if (process.env.NODE_ENV === 'production') {
 
 ```typescript
 // src/index.ts
-import { StandardServer, createLogger, ConfigManager } from '@episensor/app-framework';
+import { StandardServer, createLogger, ConfigManager } from '@superdangerous/app-framework';
 import express from 'express';
 import cors from 'cors';
 import { routes } from './routes';
@@ -846,7 +846,7 @@ import {
   StandardServer, 
   createLogger,
   getWebSocketServer 
-} from '@episensor/app-framework';
+} from '@superdangerous/app-framework';
 import { collectMetrics } from './services/metrics';
 
 const logger = createLogger('Dashboard');
@@ -892,7 +892,7 @@ import {
   StandardServer,
   QueueService,
   createLogger 
-} from '@episensor/app-framework';
+} from '@superdangerous/app-framework';
 
 const logger = createLogger('Worker');
 const queue = new QueueService({
@@ -1005,7 +1005,7 @@ module.exports = {
 **Port already in use**
 ```typescript
 // Use port utilities to clear
-import { clearPort } from '@episensor/app-framework';
+import { clearPort } from '@superdangerous/app-framework';
 await clearPort(8080);
 ```
 

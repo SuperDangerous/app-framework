@@ -5,7 +5,7 @@ The framework provides intelligent CORS middleware that automatically configures
 ## Quick Start
 
 ```typescript
-import { StandardServer, createDynamicCors } from '@episensor/app-framework';
+import { StandardServer, createDynamicCors } from '@superdangerous/app-framework';
 
 const server = new StandardServer({
   appName: 'My App',
@@ -86,7 +86,7 @@ Use with the framework's ConfigManager for dynamic configuration:
 
 ```typescript
 import { initializeConfig, getAllConfig } from './config';
-import { createDynamicCors } from '@episensor/app-framework';
+import { createDynamicCors } from '@superdangerous/app-framework';
 
 await initializeConfig();
 const config = getAllConfig();

@@ -1,4 +1,4 @@
-# EpiSensor App Framework
+# SuperDangerous App Framework
 
 A comprehensive, production-ready framework for building enterprise internal tools and applications with TypeScript, React, and real-time capabilities.
 
@@ -64,18 +64,18 @@ npm run typecheck
 
 ```bash
 # Install framework
-npm install @episensor/app-framework
+npm install @superdangerous/app-framework
 
 # Create your app
 mkdir my-app && cd my-app
 npm init -y
-npm install @episensor/app-framework
+npm install @superdangerous/app-framework
 ```
 
 ### Minimal Application
 
 ```typescript
-import { StandardServer } from "@episensor/app-framework";
+import { StandardServer } from "@superdangerous/app-framework";
 
 const server = new StandardServer({
   appName: "My App",
@@ -199,14 +199,14 @@ await server.start();
 ### Full Framework (Backend + Frontend)
 
 ```bash
-npm install @episensor/app-framework
+npm install @superdangerous/app-framework
 ```
 
 ### Import Examples
 
 ```javascript
 // Backend
-import { StandardServer, createLogger } from "@episensor/app-framework";
+import { StandardServer, createLogger } from "@superdangerous/app-framework";
 
 // Frontend UI components
 import {
@@ -214,7 +214,7 @@ import {
   Card,
   useSocketIO,
   useConnectionStatus,
-} from "@episensor/app-framework/ui";
+} from "@superdangerous/app-framework/ui";
 ```
 
 ````
@@ -224,7 +224,7 @@ import {
 ### REST API with Database
 
 ```typescript
-import { StandardServer, validate, createLogger } from '@episensor/app-framework';
+import { StandardServer, validate, createLogger } from '@superdangerous/app-framework';
 import { z } from 'zod';
 
 const logger = createLogger('API');
@@ -251,7 +251,7 @@ const server = new StandardServer({
 ### Real-Time Dashboard
 
 ```typescript
-import { StandardServer, getWebSocketServer } from "@episensor/app-framework";
+import { StandardServer, getWebSocketServer } from "@superdangerous/app-framework";
 
 const server = new StandardServer({
   appName: "Dashboard",
@@ -272,7 +272,7 @@ const server = new StandardServer({
 ### React WebSocket Integration
 
 ```tsx
-import { useSocketIO, useConnectionStatus } from "@episensor/app-framework/ui";
+import { useSocketIO, useConnectionStatus } from "@superdangerous/app-framework/ui";
 
 function Dashboard() {
   const [state, actions] = useSocketIO();
@@ -293,7 +293,7 @@ function Dashboard() {
 ### Background Job Processing
 
 ```typescript
-import { QueueService } from "@episensor/app-framework";
+import { QueueService } from "@superdangerous/app-framework";
 
 const queue = new QueueService({
   concurrent: 5,
@@ -313,7 +313,7 @@ await queue.addJob("send-email", {
 ### Settings Management
 
 ```typescript
-import { SettingsService } from '@episensor/app-framework';
+import { SettingsService } from '@superdangerous/app-framework';
 
 const settings = new SettingsService();
 
@@ -342,7 +342,7 @@ settings.registerCategory({
 import {
   createHealthCheckRouter,
   getHealthCheckService,
-} from "@episensor/app-framework";
+} from "@superdangerous/app-framework";
 
 // Add health check endpoints
 const healthRouter = createHealthCheckRouter({
@@ -374,7 +374,7 @@ console.log(
 import {
   SettingsService,
   CommonSettingsCategories,
-} from "@episensor/app-framework";
+} from "@superdangerous/app-framework";
 
 // Initialize settings service
 const settings = new SettingsService({
@@ -397,7 +397,7 @@ await settings.set("server.port", 8080);
 ### WebSocket Manager
 
 ```typescript
-import { getWebSocketManager } from "@episensor/app-framework";
+import { getWebSocketManager } from "@superdangerous/app-framework";
 
 // Initialize WebSocket manager
 const wsManager = getWebSocketManager({
@@ -522,20 +522,20 @@ import type {
   SettingType,
   ApiResponse,
   ValidationSchema,
-} from "@episensor/app-framework";
+} from "@superdangerous/app-framework";
 
 import type {
   ButtonProps,
   TableColumn,
   SettingCategory,
   WebSocketHook,
-} from "@episensor/app-framework/ui";
+} from "@superdangerous/app-framework/ui";
 ```
 
 ## 🧪 Testing
 
 ```typescript
-import { TestServer, setupTestServer } from "@episensor/app-framework";
+import { TestServer, setupTestServer } from "@superdangerous/app-framework";
 
 describe("API Tests", () => {
   let server: TestServer;
@@ -635,7 +635,7 @@ Monitor and manage all your running framework apps from the macOS menu bar.
 curl -sSL https://raw.githubusercontent.com/EPISENSOR/epi-node-process-monitor/main/install.sh | bash
 ```
 
-Learn more: [github.com/EPISENSOR/epi-node-process-monitor](https://github.com/EPISENSOR/epi-node-process-monitor)
+Learn more: [github.com/SuperDangerous/epi-node-process-monitor](https://github.com/SuperDangerous/epi-node-process-monitor)
 
 ## 📄 License
 
@@ -649,4 +649,4 @@ MIT License - see [LICENSE](./LICENSE) for details
 
 ---
 
-Built with ❤️ by EpiSensor
+Built with ❤️ by SuperDangerous

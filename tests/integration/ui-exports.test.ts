@@ -17,7 +17,7 @@ if (!(global as any).TextDecoder) {
 }
 
 describe('UI Component Exports', () => {
-  it('should export all UI components from @episensor/app-framework/ui', async () => {
+  it('should export all UI components from @superdangerous/app-framework/ui', async () => {
     // Import the UI module
     const UI = await import('../../ui/dist/index.js');
     

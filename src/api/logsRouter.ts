@@ -1,6 +1,6 @@
 /**
  * Standardized Logging API Router
- * Provides consistent logging endpoints for all EpiSensor applications
+ * Provides consistent logging endpoints for all SuperDangerous applications
  */
 
 import express, { Request, Response } from "express";

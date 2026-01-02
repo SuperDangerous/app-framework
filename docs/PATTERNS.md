@@ -1,6 +1,6 @@
 # Architectural Patterns
 
-This document provides proven patterns for building complex features with the EpiSensor App Framework. These patterns prevent common pitfalls and ensure consistent, maintainable architectures.
+This document provides proven patterns for building complex features with the SuperDangerous App Framework. These patterns prevent common pitfalls and ensure consistent, maintainable architectures.
 
 ## Table of Contents
 
@@ -25,7 +25,7 @@ Use this pattern for creating intelligent, stateful services that need to mainta
 ```typescript
 // src/services/intelligentModule.ts
 import { EventEmitter } from 'events';
-import { createLogger } from '@episensor/app-framework/core';
+import { createLogger } from '@superdangerous/app-framework/core';
 
 export interface ModuleState {
   isRunning: boolean;
@@ -152,8 +152,8 @@ Use this pattern for services that need to persist data with proper error handli
 
 ```typescript
 // src/services/persistentDataService.ts
-import { getSecureFileHandler } from '@episensor/app-framework/core';
-import { createLogger } from '@episensor/app-framework/core';
+import { getSecureFileHandler } from '@superdangerous/app-framework/core';
+import { createLogger } from '@superdangerous/app-framework/core';
 
 export class PersistentDataService<T> {
   private data: T;
@@ -259,8 +259,8 @@ Use the QueueService for reliable background processing with proper error handli
 
 ```typescript
 // src/services/notificationService.ts
-import { QueueService } from '@episensor/app-framework/services';
-import { createLogger } from '@episensor/app-framework/core';
+import { QueueService } from '@superdangerous/app-framework/services';
+import { createLogger } from '@superdangerous/app-framework/core';
 
 export interface NotificationJob {
   type: 'email' | 'push' | 'sms';
@@ -339,7 +339,7 @@ Combine WebSocket events with frontend state management for live updates.
 
 ```typescript
 // In your StandardServer setup
-import { createWebSocketServer } from '@episensor/app-framework/services';
+import { createWebSocketServer } from '@superdangerous/app-framework/services';
 
 // After server initialization
 const wsServer = createWebSocketServer(httpServer);
@@ -357,7 +357,7 @@ wsServer.broadcast({
 ```typescript
 // src/stores/batteryStore.ts
 import { create } from 'zustand';
-import { useSocketIO } from '@episensor/app-framework/ui';
+import { useSocketIO } from '@superdangerous/app-framework/ui';
 
 interface BatteryState {
   charge: number;
@@ -414,7 +414,7 @@ Use Zustand with the framework's apiRequest utility for consistent API communica
 ```typescript
 // src/stores/deviceStore.ts
 import { create } from 'zustand';
-import { apiRequest } from '@episensor/app-framework/ui';
+import { apiRequest } from '@superdangerous/app-framework/ui';
 
 interface Device {
   id: string;
@@ -498,4 +498,4 @@ export const useDeviceStore = create<DeviceStore>((set, get) => ({
 6. **Emit events for state changes** - Allow other components to react to changes
 7. **Implement proper cleanup** - Clear intervals, close connections, remove listeners
 
-These patterns will help you build robust, maintainable applications that leverage the full power of the EpiSensor App Framework.
+These patterns will help you build robust, maintainable applications that leverage the full power of the SuperDangerous App Framework.

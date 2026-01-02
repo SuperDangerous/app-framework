@@ -1,6 +1,6 @@
 {
-  "name": "@episensor/app-framework",
-  "version": "4.9.0",
+  "name": "@superdangerous/app-framework",
+  "version": "1.0.0",
   "description": "Opinionated TypeScript framework for structured vibecoding - building internal web and desktop apps with batteries included",
   "type": "module",
   "main": "dist/index.js",
@@ -82,11 +82,11 @@
     "configuration",
     "websockets"
   ],
-  "author": "EpiSensor",
+  "author": "SuperDangerous",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/brendan-carroll/epi-app-framework.git"
+    "url": "git+https://github.com/SuperDangerous/app-framework.git"
   },
   "dependencies": {
     "@types/express-session": "^1.18.2",

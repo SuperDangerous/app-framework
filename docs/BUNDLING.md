@@ -1,6 +1,6 @@
 # Desktop Bundling Guide
 
-This guide explains how to bundle Node.js backend applications for Electron desktop deployment using the EpiSensor App Framework's bundling capabilities.
+This guide explains how to bundle Node.js backend applications for Electron desktop deployment using the SuperDangerous App Framework's bundling capabilities.
 
 ## Overview
 
@@ -15,7 +15,7 @@ The desktop bundling system allows you to:
 ### 1. Install Dependencies
 
 ```bash
-npm install @episensor/app-framework
+npm install @superdangerous/app-framework
 npm install --save-dev electron electron-builder
 ```
 
@@ -24,7 +24,7 @@ npm install --save-dev electron electron-builder
 Create a `scripts/bundle-desktop.js` file:
 
 ```javascript
-import { bundleBackend } from '@episensor/app-framework/desktop';
+import { bundleBackend } from '@superdangerous/app-framework/desktop';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -210,7 +210,7 @@ my-app/
 ### 1. Backend Entry Point (`src/index.ts`)
 
 ```typescript
-import { StandardServer } from '@episensor/app-framework';
+import { StandardServer } from '@superdangerous/app-framework';
 import express from 'express';
 
 const server = new StandardServer({
@@ -232,7 +232,7 @@ await server.start();
 ### 2. Bundle Script (`scripts/bundle-desktop.js`)
 
 ```javascript
-import { bundleBackend } from '@episensor/app-framework/desktop';
+import { bundleBackend } from '@superdangerous/app-framework/desktop';
 import { execSync } from 'child_process';
 
 // Build TypeScript first
@@ -333,7 +333,7 @@ For path resolution issues:
 Handle port conflicts gracefully:
 
 ```typescript
-import { findAvailablePort } from '@episensor/app-framework';
+import { findAvailablePort } from '@superdangerous/app-framework';
 
 const port = await findAvailablePort(8080, 8090);
 process.env.PORT = port.toString();

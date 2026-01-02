@@ -1,6 +1,6 @@
 /**
  * Standard Server Implementation
- * A simplified, consistent server pattern for all EpiSensor applications
+ * A simplified, consistent server pattern for all SuperDangerous applications
  * Combines the best of StartupOrchestrator with the simplicity apps need
  */
 
@@ -54,7 +54,7 @@ export interface StandardServerConfig {
     zippedArchive?: boolean;
   };
   // Desktop app specific
-  appId?: string; // App identifier for desktop (e.g. 'com.episensor.appname')
+  appId?: string; // App identifier for desktop (e.g. 'com.superdangerous.appname')
   enableDesktopIntegration?: boolean; // Auto-configure for desktop apps
   desktopDataPath?: string; // Override desktop data path
   corsOrigins?: string[]; // Additional CORS origins for desktop apps

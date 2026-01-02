@@ -15,7 +15,7 @@ The framework provides a unified, production-ready logging system with automatic
 ## Basic Usage
 
 ```typescript
-import { createLogger } from '@episensor/app-framework';
+import { createLogger } from '@superdangerous/app-framework';
 
 const logger = createLogger('MyModule');
 
@@ -118,7 +118,7 @@ Returns the last N lines from today's log file.
 For specialized logging needs:
 
 ```typescript
-import { getLogger } from '@episensor/app-framework';
+import { getLogger } from '@superdangerous/app-framework';
 
 const loggerManager = getLogger();
 const customLogger = loggerManager.createLogger('CustomModule', {

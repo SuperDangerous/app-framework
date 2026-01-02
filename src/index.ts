@@ -1,5 +1,5 @@
 /**
- * EpiSensor App Framework
+ * SuperDangerous App Framework
  * Main entry point for the TypeScript framework
  */
 

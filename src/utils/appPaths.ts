@@ -13,7 +13,7 @@ import { mkdirSync } from "fs";
  * In development or web mode:
  * - Uses project root ./data directory
  *
- * @param appId - The application identifier (e.g., 'com.episensor.app-name')
+ * @param appId - The application identifier (e.g., 'com.superdangerous.app-name')
  * @param appName - The application name (e.g., 'app-name')
  * @returns The absolute path to the application data directory
  */

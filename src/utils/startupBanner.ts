@@ -1,5 +1,5 @@
 /**
- * Standardized Startup Banner for EpiSensor Applications
+ * Standardized Startup Banner for SuperDangerous Applications
  */
 
 import chalk from "chalk";
@@ -18,7 +18,7 @@ function getFrameworkVersion(): string {
       const localPkg = path.join(__dirname, "../../package.json");
       if (fs.existsSync(localPkg)) {
         const pkg = JSON.parse(fs.readFileSync(localPkg, "utf-8"));
-        if (pkg.name === "@episensor/app-framework") {
+        if (pkg.name === "@superdangerous/app-framework") {
           return pkg.version;
         }
       }
@@ -29,7 +29,7 @@ function getFrameworkVersion(): string {
       const nodeModulesPath = path.join(
         process.cwd(),
         "node_modules",
-        "@episensor",
+        "@superdangerous",
         "app-framework",
         "package.json",
       );
@@ -43,7 +43,7 @@ function getFrameworkVersion(): string {
     () => {
       try {
         const pkgPath = require.resolve(
-          "@episensor/app-framework/package.json",
+          "@superdangerous/app-framework/package.json",
           { paths: [process.cwd()] },
         );
         const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
@@ -92,7 +92,7 @@ export interface StartupBannerOptions extends BannerOptions {
 }
 
 /**
- * Display a standardized startup banner for EpiSensor applications
+ * Display a standardized startup banner for SuperDangerous applications
  * All apps should use this exact same format for consistency
  */
 export function displayStartupBanner(options: StartupBannerOptions): void {
@@ -253,7 +253,7 @@ export function displayStartupBanner(options: StartupBannerOptions): void {
   );
   console.log(
     makeLine(
-      `${chalk.gray(" Framework:")} ${chalk.gray(`@episensor/app-framework v${version}`)}`,
+      `${chalk.gray(" Framework:")} ${chalk.gray(`@superdangerous/app-framework v${version}`)}`,
       "left",
     ),
   );

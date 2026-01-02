@@ -76,7 +76,7 @@ export async function bundleBackend(options: BundleOptions): Promise<void> {
     "fsevents", // Mac-specific, optional
     "bufferutil", // Optional WebSocket performance
     "utf-8-validate", // Optional WebSocket validation
-    "@episensor/app-framework/ui", // UI components not needed in backend
+    "@superdangerous/app-framework/ui", // UI components not needed in backend
     "serialport", // Optional serial port support
     "@serialport/bindings-cpp", // Optional serial port bindings
     "@aws-sdk/client-s3", // Optional AWS S3 support

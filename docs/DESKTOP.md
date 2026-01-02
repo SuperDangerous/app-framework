@@ -10,7 +10,7 @@ Copy the Electron templates from the framework:
 
 ```bash
 # Copy electron files to your project
-cp -r node_modules/@episensor/app-framework/desktop/electron/* ./electron/
+cp -r node_modules/@superdangerous/app-framework/desktop/electron/* ./electron/
 ```
 
 Or manually create the following structure:
