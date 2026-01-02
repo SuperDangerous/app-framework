@@ -1,6 +1,6 @@
 {
   "name": "@superdangerous/app-framework-benchmarks",
-  "version": "1.0.0",
+  "version": "4.9.0",
   "description": "Performance benchmarks for app-framework",
   "main": "index.js",
   "scripts": {
