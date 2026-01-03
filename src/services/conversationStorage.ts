@@ -6,7 +6,7 @@
 import { Low } from "lowdb";
 import { JSONFile } from "lowdb/node";
 import path from "path";
-import { ensureDir } from "fs-extra";
+import { ensureDir } from "../utils/fs-utils.js";
 import { createLogger } from "../core/index.js";
 let logger: any; // Will be initialized when needed
 
