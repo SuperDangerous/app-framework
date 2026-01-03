@@ -56,13 +56,14 @@ export interface Logger {
 
 export type LogLevel = "debug" | "info" | "warn" | "error";
 
-// Security
+// Security & Storage
 export {
   getStorageService,
   StorageService,
   getSecureFileHandler,
   SecureFileHandler,
 } from "./storageService.js";
+export type { FileInfo, SaveOptions, ReadOptions } from "./storageService.js";
 
 /**
  * Usage Example:

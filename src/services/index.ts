@@ -12,6 +12,7 @@ export { getUpdateService } from "./updateService.js";
 export {
   createWebSocketServer,
   getWebSocketServer,
+  WebSocketServer,
 } from "./websocketServer.js";
 export {
   SettingsService,
