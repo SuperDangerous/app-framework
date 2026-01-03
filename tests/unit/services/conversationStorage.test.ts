@@ -5,7 +5,7 @@
 import ConversationStorage, { getConversationStorage } from '../../../src/services/conversationStorage';
 import { Low } from 'lowdb';
 import { JSONFile } from 'lowdb/node';
-import * as fs from 'fs-extra';
+import * as fsUtils from '../../../src/utils/fs-utils';
 import path from 'path';
 
 // Mock winston-daily-rotate-file
@@ -25,12 +25,8 @@ vi.mock('lowdb/node', () => {
   const JSONFile = vi.fn();
   return { JSONFile, default: { JSONFile } };
 });
-vi.mock('fs-extra', () => ({
-  ensureDir: vi.fn(),
-  readFile: vi.fn(),
-  writeFile: vi.fn(),
-  remove: vi.fn(),
-  pathExists: vi.fn()
+vi.mock('../../../src/utils/fs-utils', () => ({
+  ensureDir: vi.fn()
 }));
 vi.mock('../../../src/core', async () => {
   const actual = await vi.importActual<typeof import('../../../src/core')>('../../../src/core');
@@ -77,17 +73,17 @@ describe('ConversationStorage', () => {
       return mockAdapter;
     });
     
-    // Mock fs-extra
-    (fs.ensureDir as vi.Mock).mockResolvedValue(undefined);
-    
+    // Mock fs-utils
+    (fsUtils.ensureDir as vi.Mock).mockResolvedValue(undefined);
+
     storage = new ConversationStorage();
   });
 
   describe('initialize', () => {
     test('initializes database successfully', async () => {
       await storage.initialize();
-      
-      expect(fs.ensureDir).toHaveBeenCalledWith(expect.stringContaining('data'));
+
+      expect(fsUtils.ensureDir).toHaveBeenCalledWith(expect.stringContaining('data'));
       expect(JSONFile).toHaveBeenCalledWith(expect.stringContaining('conversations.json'));
       expect(Low).toHaveBeenCalled();
       expect(mockDb.read).toHaveBeenCalled();
@@ -121,8 +117,8 @@ describe('ConversationStorage', () => {
     });
 
     test('handles initialization errors', async () => {
-      (fs.ensureDir as vi.Mock).mockRejectedValue(new Error('Directory error'));
-      
+      (fsUtils.ensureDir as vi.Mock).mockRejectedValue(new Error('Directory error'));
+
       await expect(storage.initialize()).rejects.toThrow('Directory error');
     });
   });
