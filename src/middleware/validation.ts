@@ -19,12 +19,10 @@ import { ApiResponse, FieldValidationError } from "../types/index.js";
  * Validation options for middleware
  */
 export interface ValidationOptions {
+  /** Whether to stop on first error (not used with Zod) */
   abortEarly?: boolean;
+  /** Whether to strip unknown properties from validated data */
   stripUnknown?: boolean;
-  convert?: boolean;
-  presence?: "optional" | "required" | "forbidden";
-  context?: Record<string, any>;
-  allowUnknown?: boolean;
 }
 
 /**
@@ -33,8 +31,6 @@ export interface ValidationOptions {
 const defaultOptions: ValidationOptions = {
   abortEarly: false,
   stripUnknown: true,
-  convert: true,
-  allowUnknown: false,
 };
 
 /**
@@ -279,11 +275,7 @@ export function validate<T extends ZodSchema>(
 ) {
   const opts = { ...defaultOptions, ...options };
 
-  return (
-    req: Request,
-    res: Response<ApiResponse<any>>,
-    next: NextFunction,
-  ): any => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     try {
       const value = schema.parse(req.body);
 
@@ -292,20 +284,21 @@ export function validate<T extends ZodSchema>(
         req.body = value;
       }
       next();
-    } catch (_error) {
-      if (_error instanceof ZodError) {
-        const errors = formatValidationErrors(_error);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const errors = formatValidationErrors(error);
         const message = createErrorMessage(errors, "Invalid request");
 
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           error: "Validation failed",
           message,
           errors,
           timestamp: new Date().toISOString(),
-        });
+        } satisfies ApiResponse<never>);
+        return;
       }
-      next(_error);
+      next(error);
     }
   };
 }
@@ -319,11 +312,7 @@ export function validateParams<T extends ZodSchema>(
 ) {
   const opts = { ...defaultOptions, ...options };
 
-  return (
-    req: Request,
-    res: Response<ApiResponse<any>>,
-    next: NextFunction,
-  ): any => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     try {
       const value = schema.parse(req.params);
 
@@ -331,20 +320,21 @@ export function validateParams<T extends ZodSchema>(
         req.params = value;
       }
       next();
-    } catch (_error) {
-      if (_error instanceof ZodError) {
-        const errors = formatValidationErrors(_error);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const errors = formatValidationErrors(error);
         const message = createErrorMessage(errors, "Invalid parameters");
 
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           error: "Invalid parameters",
           message,
           errors,
           timestamp: new Date().toISOString(),
-        });
+        } satisfies ApiResponse<never>);
+        return;
       }
-      next(_error);
+      next(error);
     }
   };
 }
@@ -358,11 +348,7 @@ export function validateQuery<T extends ZodSchema>(
 ) {
   const opts = { ...defaultOptions, ...options };
 
-  return (
-    req: Request,
-    res: Response<ApiResponse<any>>,
-    next: NextFunction,
-  ): any => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     try {
       const value = schema.parse(req.query);
 
@@ -370,20 +356,21 @@ export function validateQuery<T extends ZodSchema>(
         req.query = value;
       }
       next();
-    } catch (_error) {
-      if (_error instanceof ZodError) {
-        const errors = formatValidationErrors(_error);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const errors = formatValidationErrors(error);
         const message = createErrorMessage(errors, "Invalid query");
 
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           error: "Invalid query parameters",
           message,
           errors,
           timestamp: new Date().toISOString(),
-        });
+        } satisfies ApiResponse<never>);
+        return;
       }
-      next(_error);
+      next(error);
     }
   };
 }
@@ -397,54 +384,50 @@ export function validateRequest<
     params?: ZodSchema;
     query?: ZodSchema;
   },
->(schemas: T, options?: ValidationOptions) {
+>(validationSchemas: T, options?: ValidationOptions) {
   const opts = { ...defaultOptions, ...options };
 
-  return (
-    req: Request,
-    res: Response<ApiResponse<any>>,
-    next: NextFunction,
-  ): any => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     const errors: FieldValidationError[] = [];
 
     // Validate body
-    if (schemas.body) {
+    if (validationSchemas.body) {
       try {
-        const value = schemas.body.parse(req.body);
+        const value = validationSchemas.body.parse(req.body);
         if (opts.stripUnknown) {
           req.body = value;
         }
-      } catch (_error) {
-        if (_error instanceof ZodError) {
-          errors.push(...formatValidationErrors(_error));
+      } catch (error) {
+        if (error instanceof ZodError) {
+          errors.push(...formatValidationErrors(error));
         }
       }
     }
 
     // Validate params
-    if (schemas.params) {
+    if (validationSchemas.params) {
       try {
-        const value = schemas.params.parse(req.params);
+        const value = validationSchemas.params.parse(req.params);
         if (opts.stripUnknown) {
           req.params = value;
         }
-      } catch (_error) {
-        if (_error instanceof ZodError) {
-          errors.push(...formatValidationErrors(_error));
+      } catch (error) {
+        if (error instanceof ZodError) {
+          errors.push(...formatValidationErrors(error));
         }
       }
     }
 
     // Validate query
-    if (schemas.query) {
+    if (validationSchemas.query) {
       try {
-        const value = schemas.query.parse(req.query);
+        const value = validationSchemas.query.parse(req.query);
         if (opts.stripUnknown) {
           req.query = value;
         }
-      } catch (_error) {
-        if (_error instanceof ZodError) {
-          errors.push(...formatValidationErrors(_error));
+      } catch (error) {
+        if (error instanceof ZodError) {
+          errors.push(...formatValidationErrors(error));
         }
       }
     }
@@ -452,13 +435,14 @@ export function validateRequest<
     if (errors.length > 0) {
       const message = createErrorMessage(errors, "Request validation failed");
 
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: "Validation failed",
         message,
         errors,
         timestamp: new Date().toISOString(),
-      });
+      } satisfies ApiResponse<never>);
+      return;
     }
 
     next();
@@ -466,30 +450,39 @@ export function validateRequest<
 }
 
 /**
+ * Error type for async validation
+ */
+interface AsyncValidationError {
+  field?: string;
+  message?: string;
+}
+
+/**
  * Async validation wrapper for custom validation logic
  */
-export function validateAsync(validationFn: (req: Request) => Promise<any>) {
+export function validateAsync(validationFn: (req: Request) => Promise<void>) {
   return async (
     req: Request,
-    res: Response<ApiResponse<any>>,
+    res: Response,
     next: NextFunction,
-  ) => {
+  ): Promise<void> => {
     try {
       await validationFn(req);
       next();
-    } catch (_error: any) {
-      const validationError: FieldValidationError = {
-        field: _error.field || "unknown",
-        message: _error.message || "Validation failed",
+    } catch (error: unknown) {
+      const validationError = error as AsyncValidationError;
+      const fieldError: FieldValidationError = {
+        field: validationError.field || "unknown",
+        message: validationError.message || "Validation failed",
       };
 
       res.status(400).json({
         success: false,
         error: "Validation failed",
-        message: _error.message,
-        errors: [validationError],
+        message: fieldError.message,
+        errors: [fieldError],
         timestamp: new Date().toISOString(),
-      });
+      } satisfies ApiResponse<never>);
     }
   };
 }
@@ -502,13 +495,10 @@ export function validateIf<T extends ZodSchema>(
   schema: T,
   options?: ValidationOptions,
 ) {
-  return (
-    req: Request,
-    res: Response<ApiResponse<any>>,
-    next: NextFunction,
-  ): any => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     if (condition(req)) {
-      return validate(schema, options)(req, res, next);
+      validate(schema, options)(req, res, next);
+      return;
     }
     next();
   };
@@ -531,23 +521,23 @@ export const compose = {
   /**
    * Make all fields optional
    */
-  partial: <T extends z.ZodObject<any>>(schema: T) => {
+  partial: <T extends z.ZodObject<z.ZodRawShape>>(schema: T) => {
     return schema.partial();
   },
 
   /**
    * Make specific fields required
    */
-  require: <T extends z.ZodObject<any>>(
+  require: <T extends z.ZodObject<z.ZodRawShape>>(
     schema: T,
     fields: Array<keyof T["shape"]>,
   ) => {
     const partialSchema = schema.partial();
-    const requiredOverrides: any = {};
+    const requiredOverrides: Record<string, z.ZodTypeAny> = {};
     fields.forEach((field) => {
       const fieldSchema = schema.shape[field as string];
       if (fieldSchema) {
-        requiredOverrides[field] = fieldSchema;
+        requiredOverrides[field as string] = fieldSchema;
       }
     });
     return partialSchema.extend(requiredOverrides);
@@ -556,14 +546,14 @@ export const compose = {
   /**
    * Pick specific fields from a schema
    */
-  pick: <T extends z.ZodObject<any>>(
+  pick: <T extends z.ZodObject<z.ZodRawShape>>(
     schema: T,
     fields: Array<keyof T["shape"]>,
   ) => {
-    const picked: any = {};
+    const picked: Record<string, z.ZodTypeAny> = {};
     fields.forEach((field) => {
       if (schema.shape[field as string]) {
-        picked[field] = schema.shape[field as string];
+        picked[field as string] = schema.shape[field as string];
       }
     });
     return z.object(picked);
@@ -572,16 +562,18 @@ export const compose = {
   /**
    * Omit specific fields from a schema
    */
-  omit: <T extends z.ZodObject<any>>(
+  omit: <T extends z.ZodObject<z.ZodRawShape>>(
     schema: T,
     fields: Array<keyof T["shape"]>,
   ) => {
-    return schema.omit(
-      fields.reduce((acc, field) => {
-        acc[field] = true;
+    const omitKeys = fields.reduce(
+      (acc, field) => {
+        acc[field as string] = true;
         return acc;
-      }, {} as any),
+      },
+      {} as Record<string, true>,
     );
+    return schema.omit(omitKeys);
   },
 };
 
