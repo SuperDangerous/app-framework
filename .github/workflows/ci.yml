@@ -130,7 +130,7 @@ jobs:
     - name: Generate coverage report
       if: matrix.os == 'ubuntu-latest' && matrix.node-version == env.NODE_VERSION
       continue-on-error: true
-      run: npm run test:coverage -- --maxWorkers=1 --forceExit
+      run: npm run test:coverage
       
     - name: Upload coverage
       if: matrix.os == 'ubuntu-latest' && matrix.node-version == env.NODE_VERSION

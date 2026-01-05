@@ -33,17 +33,20 @@ export interface LogFile {
  * Validate and sanitize file path to prevent directory traversal
  */
 function validateFilePath(filename: string, baseDir: string): string | null {
-  if (!filename || typeof filename !== 'string') {
+  if (!filename || typeof filename !== "string") {
     return null;
   }
 
   // Normalize the filename and resolve path
-  const safeName = path.normalize(filename).replace(/^(\.\.[\/\\])+/, '');
+  const safeName = path.normalize(filename).replace(/^(\.\.[/\\])+/, "");
   const resolvedPath = path.resolve(baseDir, safeName);
   const resolvedBase = path.resolve(baseDir);
 
   // Ensure the resolved path is within the base directory
-  if (!resolvedPath.startsWith(resolvedBase + path.sep) && resolvedPath !== resolvedBase) {
+  if (
+    !resolvedPath.startsWith(resolvedBase + path.sep) &&
+    resolvedPath !== resolvedBase
+  ) {
     return null;
   }
 
@@ -54,8 +57,8 @@ function validateFilePath(filename: string, baseDir: string): string | null {
  * Safely parse integer with fallback
  */
 function parseIntSafe(value: any, defaultValue: number): number {
-  if (typeof value === 'number') return Math.floor(value);
-  if (typeof value === 'string') {
+  if (typeof value === "number") return Math.floor(value);
+  if (typeof value === "string") {
     const parsed = parseInt(value, 10);
     return isNaN(parsed) ? defaultValue : parsed;
   }
@@ -75,7 +78,10 @@ function formatBytes(bytes: number, decimals = 2): string {
 /**
  * Helper to get log files from a directory
  */
-async function getLogFilesFromDir(logsDir: string, includeFullPath = false): Promise<LogFile[]> {
+async function getLogFilesFromDir(
+  logsDir: string,
+  includeFullPath = false,
+): Promise<LogFile[]> {
   if (!existsSync(logsDir)) {
     return [];
   }
@@ -84,7 +90,11 @@ async function getLogFilesFromDir(logsDir: string, includeFullPath = false): Pro
   const logFiles: LogFile[] = [];
 
   for (const file of files) {
-    if (file.endsWith(".log") || file.endsWith(".txt") || file.endsWith(".gz")) {
+    if (
+      file.endsWith(".log") ||
+      file.endsWith(".txt") ||
+      file.endsWith(".gz")
+    ) {
       const filePath = path.join(logsDir, file);
       const stats = await fs.stat(filePath);
 
@@ -92,7 +102,7 @@ async function getLogFilesFromDir(logsDir: string, includeFullPath = false): Pro
         name: file,
         size: stats.size,
         modified: stats.mtime.toISOString(),
-        ...(includeFullPath && { path: filePath })
+        ...(includeFullPath && { path: filePath }),
       });
     }
   }

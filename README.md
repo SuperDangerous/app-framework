@@ -251,7 +251,10 @@ const server = new StandardServer({
 ### Real-Time Dashboard
 
 ```typescript
-import { StandardServer, getWebSocketServer } from "@superdangerous/app-framework";
+import {
+  StandardServer,
+  getWebSocketServer,
+} from "@superdangerous/app-framework";
 
 const server = new StandardServer({
   appName: "Dashboard",
@@ -272,7 +275,10 @@ const server = new StandardServer({
 ### React WebSocket Integration
 
 ```tsx
-import { useSocketIO, useConnectionStatus } from "@superdangerous/app-framework/ui";
+import {
+  useSocketIO,
+  useConnectionStatus,
+} from "@superdangerous/app-framework/ui";
 
 function Dashboard() {
   const [state, actions] = useSocketIO();

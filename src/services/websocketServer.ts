@@ -171,7 +171,9 @@ class WebSocketServer {
     // Leave socket.io room
     socket.leave(`simulator:${simulatorId}`);
 
-    logger?.debug(`Client ${socket.id} unsubscribed from simulator ${simulatorId}`);
+    logger?.debug(
+      `Client ${socket.id} unsubscribed from simulator ${simulatorId}`,
+    );
   }
 
   private handleDisconnect(socket: Socket): void {
@@ -242,7 +244,9 @@ class WebSocketServer {
           type: "data:update",
           data: {
             simulatorId: data.simulatorId!,
-            values: (data.values as Record<string, unknown>) || { [data.address as string]: data.value },
+            values: (data.values as Record<string, unknown>) || {
+              [data.address as string]: data.value,
+            },
           },
         } as DataUpdateMessage;
         break;
@@ -258,8 +262,11 @@ class WebSocketServer {
     // This prevents duplicate events for subscribed clients
     if (data.simulatorId) {
       this.io.to(`simulator:${data.simulatorId}`).emit(event, message.data);
-      const subscriberCount = this.simulatorSubscriptions.get(data.simulatorId)?.size || 0;
-      logger?.debug(`Broadcast ${event} to ${subscriberCount} subscribers of simulator ${data.simulatorId}`);
+      const subscriberCount =
+        this.simulatorSubscriptions.get(data.simulatorId)?.size || 0;
+      logger?.debug(
+        `Broadcast ${event} to ${subscriberCount} subscribers of simulator ${data.simulatorId}`,
+      );
     } else {
       this.io.emit(event, message.data);
       logger?.debug(`Broadcast ${event} to ${this.clients.size} clients`);
@@ -269,7 +276,11 @@ class WebSocketServer {
   /**
    * Send event to specific simulator subscribers
    */
-  broadcastToSimulator(simulatorId: string, event: string, data: Record<string, unknown>): void {
+  broadcastToSimulator(
+    simulatorId: string,
+    event: string,
+    data: Record<string, unknown>,
+  ): void {
     if (!this.io) return;
 
     const message: DataUpdateMessage = {
@@ -282,8 +293,11 @@ class WebSocketServer {
 
     this.io.to(`simulator:${simulatorId}`).emit(event, message.data);
 
-    const subscriberCount = this.simulatorSubscriptions.get(simulatorId)?.size || 0;
-    logger?.debug(`Broadcast ${event} to ${subscriberCount} subscribers of simulator ${simulatorId}`);
+    const subscriberCount =
+      this.simulatorSubscriptions.get(simulatorId)?.size || 0;
+    logger?.debug(
+      `Broadcast ${event} to ${subscriberCount} subscribers of simulator ${simulatorId}`,
+    );
   }
 
   /**
