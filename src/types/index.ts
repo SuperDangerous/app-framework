@@ -92,7 +92,6 @@ export interface UpdateCheckResult {
 export interface ClientInfo {
   id: string;
   connectedAt: Date;
-  lastActivity: Date;
   subscriptions: Set<string>;
 }
 
@@ -109,9 +108,9 @@ export interface Logger {
 /**
  * WebSocket message types
  */
-export interface WebSocketMessage {
+export interface WebSocketMessage<T = unknown> {
   type: string;
-  data: any;
+  data: T;
 }
 
 export interface SimulatorUpdateMessage extends WebSocketMessage {
@@ -128,7 +127,7 @@ export interface DataUpdateMessage extends WebSocketMessage {
   type: "data:update";
   data: {
     simulatorId: string;
-    values: Record<string, any>;
+    values: Record<string, unknown>;
   };
 }
 
@@ -136,19 +135,19 @@ export interface Simulator {
   id: string;
   name: string;
   status: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface Template {
   id: string;
   name: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface AppConfig {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface ValidationError extends Error {
-  details?: any[];
+  details?: unknown[];
 }

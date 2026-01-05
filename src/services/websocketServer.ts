@@ -13,9 +13,10 @@ import {
   DataUpdateMessage,
   Simulator,
   Template,
+  Logger,
 } from "../types/index.js";
 
-let logger: any; // Will be initialized when needed
+let logger: Logger | null = null;
 
 interface ClientInfo {
   id: string;
@@ -26,7 +27,10 @@ interface ClientInfo {
 interface BroadcastData {
   simulatorId?: string;
   templateId?: string;
-  [key: string]: any;
+  address?: string;
+  value?: unknown;
+  values?: Record<string, unknown>;
+  [key: string]: unknown;
 }
 
 class WebSocketServer {
@@ -34,7 +38,7 @@ class WebSocketServer {
   private httpServer: HTTPServer;
   private clients: Map<string, ClientInfo>;
   private simulatorSubscriptions: Map<string, Set<string>>; // simulatorId -> Set of socket IDs
-  private broadcastHook?: (event: string, data: any) => void;
+  private broadcastHook?: (event: string, data: BroadcastData) => void;
 
   constructor(httpServer: HTTPServer) {
     // Initialize logger if not already done
@@ -48,12 +52,12 @@ class WebSocketServer {
   }
 
   initialize(opts?: {
-    broadcastHook?: (event: string, data: any) => void;
+    broadcastHook?: (event: string, data: BroadcastData) => void;
   }): void {
     if (this.io) {
       if (opts?.broadcastHook) {
         this.broadcastHook = opts.broadcastHook;
-        logger.debug("WebSocket broadcast hook updated");
+        logger?.debug("WebSocket broadcast hook updated");
       }
       return;
     }
@@ -71,7 +75,7 @@ class WebSocketServer {
     }
 
     this.setupEventHandlers();
-    logger.info("WebSocket server initialized");
+    logger?.info("WebSocket server initialized");
   }
 
   /**
@@ -87,7 +91,7 @@ class WebSocketServer {
     this.io.on("connection", (socket: Socket) => {
       // Only log in debug mode to avoid spam
       if (process.env.LOG_LEVEL?.toLowerCase() === "debug") {
-        logger.debug(`Client connected: ${socket.id}`);
+        logger?.debug(`Client connected: ${socket.id}`);
       }
       this.clients.set(socket.id, {
         id: socket.id,
@@ -114,14 +118,14 @@ class WebSocketServer {
       socket.on("disconnect", () => {
         // Only log in debug mode to avoid spam
         if (process.env.LOG_LEVEL?.toLowerCase() === "debug") {
-          logger.debug(`Client disconnected: ${socket.id}`);
+          logger?.debug(`Client disconnected: ${socket.id}`);
         }
         this.handleDisconnect(socket);
       });
 
       // Handle errors
-      socket.on("error", (_error: Error) => {
-        logger.error(`Socket error for ${socket.id}:`, _error);
+      socket.on("error", (error: Error) => {
+        logger?.error(`Socket error for ${socket.id}:`, error);
       });
     });
   }
@@ -145,7 +149,7 @@ class WebSocketServer {
     // Join socket.io room for efficient broadcasting
     socket.join(`simulator:${simulatorId}`);
 
-    logger.debug(`Client ${socket.id} subscribed to simulator ${simulatorId}`);
+    logger?.debug(`Client ${socket.id} subscribed to simulator ${simulatorId}`);
   }
 
   private unsubscribeFromSimulator(socket: Socket, simulatorId: string): void {
@@ -167,9 +171,7 @@ class WebSocketServer {
     // Leave socket.io room
     socket.leave(`simulator:${simulatorId}`);
 
-    logger.debug(
-      `Client ${socket.id} unsubscribed from simulator ${simulatorId}`,
-    );
+    logger?.debug(`Client ${socket.id} unsubscribed from simulator ${simulatorId}`);
   }
 
   private handleDisconnect(socket: Socket): void {
@@ -240,7 +242,7 @@ class WebSocketServer {
           type: "data:update",
           data: {
             simulatorId: data.simulatorId!,
-            values: data.values || { [data.address]: data.value },
+            values: (data.values as Record<string, unknown>) || { [data.address as string]: data.value },
           },
         } as DataUpdateMessage;
         break;
@@ -252,21 +254,22 @@ class WebSocketServer {
         } as WebSocketMessage;
     }
 
-    // Broadcast to all clients
-    this.io.emit(event, message.data);
-
-    // If simulator-specific, also send to room
+    // Broadcast: if simulator-specific, send only to room; otherwise broadcast globally
+    // This prevents duplicate events for subscribed clients
     if (data.simulatorId) {
       this.io.to(`simulator:${data.simulatorId}`).emit(event, message.data);
+      const subscriberCount = this.simulatorSubscriptions.get(data.simulatorId)?.size || 0;
+      logger?.debug(`Broadcast ${event} to ${subscriberCount} subscribers of simulator ${data.simulatorId}`);
+    } else {
+      this.io.emit(event, message.data);
+      logger?.debug(`Broadcast ${event} to ${this.clients.size} clients`);
     }
-
-    logger.debug(`Broadcast ${event} to ${this.clients.size} clients`);
   }
 
   /**
    * Send event to specific simulator subscribers
    */
-  broadcastToSimulator(simulatorId: string, event: string, data: any): void {
+  broadcastToSimulator(simulatorId: string, event: string, data: Record<string, unknown>): void {
     if (!this.io) return;
 
     const message: DataUpdateMessage = {
@@ -279,11 +282,8 @@ class WebSocketServer {
 
     this.io.to(`simulator:${simulatorId}`).emit(event, message.data);
 
-    const subscriberCount =
-      this.simulatorSubscriptions.get(simulatorId)?.size || 0;
-    logger.debug(
-      `Broadcast ${event} to ${subscriberCount} subscribers of simulator ${simulatorId}`,
-    );
+    const subscriberCount = this.simulatorSubscriptions.get(simulatorId)?.size || 0;
+    logger?.debug(`Broadcast ${event} to ${subscriberCount} subscribers of simulator ${simulatorId}`);
   }
 
   /**
@@ -338,7 +338,7 @@ class WebSocketServer {
       // Close the server
       await new Promise<void>((resolve) => {
         this.io!.close(() => {
-          logger.info("WebSocket server shut down");
+          logger?.info("WebSocket server shut down");
           resolve();
         });
       });
@@ -362,7 +362,7 @@ export function createWebSocketServer(
   httpServer: HTTPServer,
   opts?: {
     reset?: boolean;
-    broadcastHook?: (event: string, data: any) => void;
+    broadcastHook?: (event: string, data: BroadcastData) => void;
   },
 ): WebSocketServer {
   // Initialize logger if not already done
