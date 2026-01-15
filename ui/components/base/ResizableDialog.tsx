@@ -254,8 +254,9 @@ export function ResizableDialog({
       <DialogContent
         ref={dialogRef}
         style={dialogStyle}
+        hideCloseButton
         className={cn(
-          'flex flex-col p-0 gap-0 [&>button.absolute]:hidden',
+          'flex flex-col p-0 gap-0',
           // Disable transitions during interaction for instant feedback
           isInteracting && 'transition-none duration-0 [&_*]:transition-none',
           isFullscreen ? 'rounded-none' : 'rounded-lg',
