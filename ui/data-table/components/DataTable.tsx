@@ -240,11 +240,12 @@ export function DataTable<T>({
   return (
     <TooltipProvider>
       <>
-        {/* Table - scrolling handled by parent container */}
-        <Table
-          style={getTableStyle()}
-          className={cn('resizable-table sticky-actions-table', className)}
-        >
+        {/* Table with scroll container and border */}
+        <div className="overflow-x-auto border rounded-lg">
+          <Table
+            style={getTableStyle()}
+            className={cn('resizable-table sticky-actions-table', className)}
+          >
           <TableHeader>
             <TableRow onContextMenu={handleHeaderContextMenu}>
               {columnOrder.map((colKey) => {
@@ -403,7 +404,8 @@ export function DataTable<T>({
               })
             )}
           </TableBody>
-        </Table>
+          </Table>
+        </div>
 
         {/* Empty state - rendered outside table for proper positioning */}
         {!loading && pagination.paginatedData.length === 0 && (
