@@ -162,3 +162,159 @@
     @apply bg-yellow-500 animate-pulse;
   }
 }
+
+/* ============================================================================
+   DataTable Styles - Outside @layer for proper CSS specificity
+   These styles ensure DataTable components work correctly without users
+   needing to battle Tailwind specificity issues.
+   ============================================================================ */
+
+/* DataTablePage: Search bar should not be full width */
+.data-table-page-header .w-full.sm\:w-auto {
+  width: auto !important;
+  min-width: 200px !important;
+  max-width: 320px !important;
+  flex-shrink: 0 !important;
+}
+
+/* DataTablePage: Header padding */
+.data-table-page-header {
+  padding-left: 1.5rem !important;
+  padding-right: 1.5rem !important;
+  padding-top: 1rem !important;
+}
+
+/* Sticky checkbox column (left side) */
+.sticky-actions-table thead tr th:first-child:has(input[type="checkbox"]),
+.sticky-actions-table thead tr th.sticky-select-header {
+  position: sticky !important;
+  left: 0 !important;
+  z-index: 32 !important;
+  background-color: hsl(var(--muted)) !important;
+}
+
+.sticky-actions-table tbody tr td:first-child:has(input[type="checkbox"]),
+.sticky-actions-table tbody tr td.sticky-select-cell {
+  position: sticky !important;
+  left: 0 !important;
+  z-index: 6 !important;
+  background-color: white !important;
+}
+
+/* Right border on checkbox column */
+.sticky-actions-table thead tr th:first-child:has(input[type="checkbox"])::after,
+.sticky-actions-table thead tr th.sticky-select-header::after,
+.sticky-actions-table tbody tr td:first-child:has(input[type="checkbox"])::after,
+.sticky-actions-table tbody tr td.sticky-select-cell::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: hsl(var(--border));
+}
+
+/* Sticky actions column (right side) */
+.sticky-actions-table thead tr th:last-child {
+  position: sticky !important;
+  right: 0 !important;
+  z-index: 20 !important;
+  background-color: hsl(var(--muted)) !important;
+}
+
+.sticky-actions-table tbody tr td:last-child:not([colspan]) {
+  position: sticky !important;
+  right: 0 !important;
+  z-index: 10 !important;
+  background-color: white !important;
+}
+
+/* Left border on actions column */
+.sticky-actions-table thead tr th:last-child::before,
+.sticky-actions-table tbody tr td:last-child:not([colspan])::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: hsl(var(--border));
+}
+
+/* Column resize handles */
+.resizable-table th {
+  position: relative !important;
+}
+
+.resize-handle {
+  position: absolute !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  right: -6px !important;
+  width: 12px !important;
+  z-index: 50 !important;
+  cursor: col-resize !important;
+  touch-action: none;
+  transition: background-color 0.15s;
+}
+
+.resize-handle:hover,
+.resize-handle[data-resizing="true"] {
+  background-color: hsl(var(--border) / 0.3) !important;
+}
+
+.resize-handle::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background-color: hsl(var(--border) / 0.5);
+}
+
+/* DataTable scroll container */
+.data-table-scroll-container {
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+}
+
+.data-table-scroll-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.data-table-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.data-table-scroll-container::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--border));
+  border-radius: 4px;
+}
+
+.data-table-scroll-container::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Sticky header */
+.data-table-scroll-container thead {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 30 !important;
+}
+
+.data-table-scroll-container thead tr,
+.data-table-scroll-container thead th {
+  background-color: hsl(var(--muted)) !important;
+}
+
+.data-table-scroll-container thead th {
+  border-top: 1px solid hsl(var(--border)) !important;
+}
