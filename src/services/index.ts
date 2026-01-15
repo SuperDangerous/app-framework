@@ -46,3 +46,17 @@ export type {
 // Queue Service
 export { default as QueueService } from "./queueService.js";
 export type { QueueJob, QueueConfig, JobHandler } from "./queueService.js";
+
+// Email Service
+export {
+  EmailService,
+  getEmailService,
+  createEmailService,
+} from "./emailService.js";
+export type {
+  EmailConfig,
+  EmailOptions,
+  EmailServiceStatus,
+  NotificationEvent,
+  NotificationEventType,
+} from "./emailService.js";

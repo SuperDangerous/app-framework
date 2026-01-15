@@ -1,6 +1,6 @@
 {
   "name": "@superdangerous/ui-framework",
-  "version": "4.9.0",
+  "version": "4.10.0",
   "description": "Opinionated UI component library for SuperDangerous internal applications",
   "main": "dist/index.mjs",
   "module": "dist/index.mjs",

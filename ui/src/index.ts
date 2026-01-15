@@ -55,9 +55,19 @@ export { LoadingState, CardSkeleton, TableSkeleton } from '../components/base/Lo
 export { HelpTooltip } from '../components/base/HelpTooltip';
 export { NetworkInterfaceSelect } from '../components/connections/NetworkInterfaceSelect';
 export { MarkdownViewer, MarkdownCard, MarkdownScrollArea } from '../components/base/MarkdownViewer';
+export { TruncatedText } from '../components/base/TruncatedText';
+export { ColorPalette, TAG_COLORS, getRandomTagColor, getNextTagColor, getNextAvailableColor } from '../components/base/ColorPalette';
+export { ConfirmDialog, useConfirmDialog } from '../components/base/ConfirmDialog';
+export type { ConfirmDialogVariant } from '../components/base/ConfirmDialog';
+export { ResizableDialog } from '../components/base/ResizableDialog';
+export { ContextMenu, ContextMenuItem, ContextMenuSeparator, ContextMenuSubmenu } from '../components/base/context-menu';
+export type { ContextMenuProps, ContextMenuPosition, ContextMenuItemProps, ContextMenuSubmenuProps } from '../components/base/context-menu';
+export { CodeViewer, CodeSnippet } from '../components/base/CodeViewer';
+export type { CodeViewerProps } from '../components/base/CodeViewer';
 
 // Utilities
 export * from './utils/dateFormat';
+export * from './utils/numberFormat';
 export * from './utils/tagColors';
 export * from './utils/time';
 export * from './utils/apiReadiness';
@@ -135,3 +145,42 @@ export { ThemeProvider, useTheme } from './theme/ThemeProvider';
 export type { ThemeMode, ThemeConfig, ThemeProviderProps } from './theme/ThemeProvider';
 export * from './styles';
 export * from '../icons';
+
+// Data Table components and hooks
+export {
+  DataTable,
+  DataTablePage,
+  PaginationControls,
+  Pagination,
+  BatchActionsBar,
+  ColumnVisibility,
+  TableFilters,
+  usePagination,
+  useColumnVisibility,
+  useResizableColumns,
+  useColumnOrder,
+  useColumnDragDrop,
+} from '../data-table';
+
+export type {
+  DataTableProps,
+  ColumnDef,
+  ColumnWidth,
+  ColumnVisibilityConfig,
+  HeaderCellProps,
+  CellProps,
+  ExternalPaginationState,
+  ColumnConfigCompat,
+  ColumnSizeConfig,
+  DataTablePageProps,
+  FilterOption,
+  PaginationControlsProps,
+  BatchActionsBarProps,
+  TableFiltersProps,
+  TableFilterOption,
+  ColumnConfig,
+  ColumnVisibilityState,
+  ResizableColumnResult,
+  ColumnOrderConfig,
+  DragState,
+} from '../data-table';

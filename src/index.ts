@@ -83,6 +83,20 @@ export type {
   ProcessInfo,
 } from "./services/systemMonitor.js";
 
+// Email service exports
+export {
+  EmailService,
+  getEmailService,
+  createEmailService,
+} from "./services/emailService.js";
+export type {
+  EmailConfig,
+  EmailOptions,
+  EmailServiceStatus,
+  NotificationEvent,
+  NotificationEventType,
+} from "./services/emailService.js";
+
 // Health check exports
 export {
   createHealthCheckRouter,
