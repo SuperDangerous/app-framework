@@ -240,14 +240,14 @@ export function DataTable<T>({
   return (
     <TooltipProvider>
       <>
-        {/* Table with scroll container and border */}
-        <div className="overflow-x-auto border rounded-lg">
+        {/* Table with scroll container and border - supports both horizontal and vertical scroll with sticky header */}
+        <div className="overflow-auto border rounded-lg max-h-[calc(100vh-16rem)]">
           <Table
             style={getTableStyle()}
             className={cn('resizable-table sticky-actions-table', className)}
           >
-          <TableHeader>
-            <TableRow onContextMenu={handleHeaderContextMenu}>
+          <TableHeader className="sticky top-0 z-20 bg-muted">
+            <TableRow onContextMenu={handleHeaderContextMenu} className="border-t-0">
               {columnOrder.map((colKey) => {
                 // Select column (sticky on left)
                 if (colKey === 'select' && selectable) {
@@ -311,7 +311,7 @@ export function DataTable<T>({
                   colSpan={columnOrder.length + (actionsColumn ? 1 : 0)}
                   className="!p-0 h-32"
                 >
-                  <div className="sticky left-0 w-screen max-w-full h-full bg-white flex justify-center items-center">
+                  <div className="sticky left-0 w-screen max-w-full h-full bg-background flex justify-center items-center">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Loader2 className="h-5 w-5 animate-spin" />
                       Loading...
@@ -328,7 +328,7 @@ export function DataTable<T>({
                   <TableRow
                     key={rowId}
                     className={cn(
-                      'cursor-pointer bg-white hover:bg-muted/50',
+                      'group cursor-pointer bg-background hover:bg-muted/50',
                       isSelected && 'bg-primary/5',
                       rowClassName?.(item)
                     )}
@@ -348,7 +348,8 @@ export function DataTable<T>({
                             key="select"
                             className={cn(
                               'sticky-select-cell w-10 sticky left-0 z-10 relative after:absolute after:right-0 after:top-0 after:bottom-0 after:w-px after:bg-border',
-                              isSelected ? 'bg-primary/5' : 'bg-white'
+                              'bg-background group-hover:bg-muted',
+                              isSelected && 'bg-primary/5 group-hover:bg-primary/10'
                             )}
                             onClick={(e) => e.stopPropagation()}
                           >
@@ -391,7 +392,8 @@ export function DataTable<T>({
                       <TableCell
                         className={cn(
                           'sticky right-0 z-10 text-center relative before:absolute before:left-0 before:top-0 before:bottom-0 before:w-px before:bg-border',
-                          isSelected ? 'bg-primary/5' : 'bg-white'
+                          'bg-background group-hover:bg-muted',
+                          isSelected && 'bg-primary/5 group-hover:bg-primary/10'
                         )}
                         style={{ width: actionsColumnWidth, minWidth: actionsColumnWidth, maxWidth: actionsColumnWidth }}
                         onClick={(e) => e.stopPropagation()}
@@ -409,7 +411,7 @@ export function DataTable<T>({
 
         {/* Empty state - rendered outside table for proper positioning */}
         {!loading && pagination.paginatedData.length === 0 && (
-          <div className="empty-state-container flex-1 flex items-center justify-center bg-white">
+          <div className="empty-state-container flex-1 flex items-center justify-center bg-background">
             {emptyState || <span className="block text-center text-muted-foreground py-8">No data</span>}
           </div>
         )}

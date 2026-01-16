@@ -315,6 +315,36 @@
   background-color: hsl(var(--muted)) !important;
 }
 
+/* Header bottom border - cohesive border instead of individual cell borders */
+.data-table-scroll-container thead {
+  border-bottom: 1px solid hsl(var(--border)) !important;
+}
+
 .data-table-scroll-container thead th {
-  border-top: 1px solid hsl(var(--border)) !important;
+  border: none !important;
+}
+
+/* Remove top border from first body row to prevent double border with header */
+.data-table-scroll-container tbody tr:first-child,
+.data-table-scroll-container tbody tr:first-child td {
+  border-top: none !important;
+}
+
+/* Empty state: container fills remaining space below table header */
+.data-table-scroll-container:has(.empty-state-container) {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+}
+
+.data-table-scroll-container:has(.empty-state-container) table {
+  flex-shrink: 0;
+}
+
+.data-table-scroll-container .empty-state-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
 }
