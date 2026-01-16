@@ -328,7 +328,7 @@ export function DataTable<T>({
                   <TableRow
                     key={rowId}
                     className={cn(
-                      'group cursor-pointer bg-background hover:bg-muted',
+                      'group cursor-pointer bg-background hover:bg-muted transition-none',
                       isSelected && 'bg-primary/5',
                       rowClassName?.(item)
                     )}
