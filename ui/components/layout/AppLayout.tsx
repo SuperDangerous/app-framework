@@ -16,6 +16,12 @@ export interface AppLayoutProps {
   navigation: NavItem[];
   children: React.ReactNode;
   logoSrc?: string;
+  /** Custom CSS class for logo (default: "h-8 w-auto") */
+  logoClassName?: string;
+  /** Offset for logo positioning, e.g., { top: -4, left: 0 } */
+  logoOffset?: { top?: number; left?: number };
+  /** Custom header height class (default: "h-16") */
+  headerHeight?: string;
   showLogout?: boolean;
   onLogout?: () => void;
   authenticated?: boolean;
@@ -34,6 +40,9 @@ export function AppLayout({
   navigation,
   children,
   logoSrc = '/assets/logo.png',
+  logoClassName = 'h-8 w-auto',
+  logoOffset,
+  headerHeight = 'h-16',
   showLogout = false,
   onLogout,
   authenticated = true,
@@ -72,26 +81,33 @@ export function AppLayout({
       {/* Header */}
       <header className="bg-black">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className={cn("flex justify-between items-center", headerHeight)}>
             <div className="flex items-center">
-              <img 
+              <img
                 src={logoSrc}
-                alt="EpiSensor" 
-                className="h-8 w-auto mr-3"
+                alt="Logo"
+                className={cn(logoClassName, "mr-3")}
+                style={logoOffset ? {
+                  position: 'relative',
+                  top: logoOffset.top ?? 0,
+                  left: logoOffset.left ?? 0
+                } : undefined}
                 onError={(e) => {
                   // Hide image if it fails to load
                   (e.target as HTMLImageElement).style.display = 'none';
                 }}
               />
-              <h1 className="text-xl font-semibold text-white">
-                {appName}
-              </h1>
+              {appName && (
+                <h1 className="text-xl font-semibold text-white">
+                  {appName}
+                </h1>
+              )}
               {appVersion && (
                 <span className="ml-2 text-xs text-gray-400">v{appVersion}</span>
               )}
             </div>
             <div className="flex items-center space-x-4">
-              <ConnectionStatus 
+              <ConnectionStatus
                 url={connectionStatusUrl}
                 className="text-xs text-gray-400"
               />
@@ -105,7 +121,7 @@ export function AppLayout({
                 </button>
               )}
               {/* Mobile menu button */}
-              <button 
+              <button
                 className="md:hidden p-2 text-white"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
@@ -201,6 +217,9 @@ export function SidebarLayout({
   navigation,
   children,
   logoSrc = '/assets/logo.png',
+  logoClassName = 'h-8 w-auto',
+  logoOffset,
+  headerHeight = 'h-16',
   showLogout = false,
   onLogout,
   authenticated = true,
@@ -234,25 +253,32 @@ export function SidebarLayout({
       {/* Header */}
       <header className="bg-black">
         <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className={cn("flex justify-between items-center", headerHeight)}>
             <div className="flex items-center">
-              <img 
+              <img
                 src={logoSrc}
-                alt="EpiSensor" 
-                className="h-8 w-auto mr-3"
+                alt="Logo"
+                className={cn(logoClassName, "mr-3")}
+                style={logoOffset ? {
+                  position: 'relative',
+                  top: logoOffset.top ?? 0,
+                  left: logoOffset.left ?? 0
+                } : undefined}
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = 'none';
                 }}
               />
-              <h1 className="text-xl font-semibold text-white">
-                {appName}
-              </h1>
+              {appName && (
+                <h1 className="text-xl font-semibold text-white">
+                  {appName}
+                </h1>
+              )}
               {appVersion && (
                 <span className="ml-2 text-xs text-gray-400">v{appVersion}</span>
               )}
             </div>
             <div className="flex items-center space-x-4">
-              <ConnectionStatus 
+              <ConnectionStatus
                 url={connectionStatusUrl}
                 className="text-white"
               />
