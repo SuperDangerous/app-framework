@@ -34,7 +34,7 @@ export { ProtectedRoute } from '../components/auth/ProtectedRoute';
 export { LogsPage } from '../components/logs/LogsPage';
 export type { LogsPageProps } from '../components/logs/LogsPage';
 export { SettingsPage } from './pages/SettingsPage';
-export type { SettingsPageProps, SettingsCategory, SettingDefinition } from './pages/SettingsPage';
+export type { SettingsPageProps } from './pages/SettingsPage';
 
 // Status components
 export { ConnectionStatus } from '../components/connections/ConnectionStatus';
@@ -79,9 +79,35 @@ export type { UseFormStateOptions, FormState } from './hooks/useFormState';
 // Layout components
 export { AppLayout, SidebarLayout } from '../components/layout/AppLayout';
 export type { AppLayoutProps, SidebarLayoutProps, NavItem } from '../components/layout/AppLayout';
-// AppShell component not found
-// export { AppShell } from '../components/layout/AppShell';
-// export type { AppShellProps, NavItem as AppShellNavItem } from '../components/layout/AppShell';
+
+// Sidebar Layout (BMS-style)
+export { SidebarAppLayout } from '../components/layout/SidebarAppLayout';
+export type { SidebarAppLayoutProps, SidebarNavItem, SidebarNavGroup } from '../components/layout/SidebarAppLayout';
+
+// Sidebar primitives
+export {
+  SidebarProvider,
+  useSidebar,
+  Sidebar,
+  SidebarTrigger,
+  SidebarInset,
+  SidebarRail,
+  SidebarHeader,
+  SidebarFooter,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarMenuAction,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
+  SidebarSection,
+  SidebarSeparator,
+  SidebarMenuBadge,
+} from '../components/layout/sidebar';
 
 // Activity components
 export { ActivityLED } from '../components/activity/ActivityLED';
@@ -112,6 +138,9 @@ export type { LogStatsProps } from '../components/logs/LogStats';
 
 // Settings components
 export { SettingsFramework } from '../components/settings/SettingsFramework';
+export type { SettingsFrameworkProps, SettingsCategory, SettingDefinition, SettingsCategoryComponentProps, CustomFieldProps } from '../components/settings/SettingsFramework';
+export { LogsSettings, LiveLogsSettings, LogArchivesSettings } from '../components/settings/LogsSettings';
+export type { LogsSettingsProps, LiveLogsSettingsProps, LogArchivesSettingsProps } from '../components/settings/LogsSettings';
 export { ThemeToggle, CompactThemeToggle } from '../components/settings/ThemeToggle';
 export type { ThemeToggleProps } from '../components/settings/ThemeToggle';
 export { defaultSettingsCategories, createSettingsCategory } from './config/defaultSettingsCategories';
@@ -155,6 +184,7 @@ export {
   BatchActionsBar,
   ColumnVisibility,
   TableFilters,
+  MultiSelectFilter,
   usePagination,
   useColumnVisibility,
   useResizableColumns,
@@ -178,6 +208,8 @@ export type {
   BatchActionsBarProps,
   TableFiltersProps,
   TableFilterOption,
+  MultiSelectFilterProps,
+  MultiSelectOption,
   ColumnConfig,
   ColumnVisibilityState,
   ResizableColumnResult,

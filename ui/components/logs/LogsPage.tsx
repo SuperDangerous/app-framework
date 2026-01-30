@@ -65,7 +65,6 @@ export function LogsPage({
       enableExport={true}
       enableClear={true}
       enableAutoScroll={true}
-      enablePause={true}
       showCategories={true}
       showArchives={true}
       height="calc(100vh - 200px)"

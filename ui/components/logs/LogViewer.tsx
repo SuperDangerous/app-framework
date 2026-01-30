@@ -5,12 +5,16 @@ import { Button } from '../base/button';
 import { Badge } from '../base/badge';
 import { Alert, AlertDescription } from '../base/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../base/select';
+import { Switch } from '../base/switch';
+import { Label } from '../base/label';
+import { ConfirmDialog } from '../base/ConfirmDialog';
 import {
   Terminal, Archive, Download, Trash2, Search, Copy as CopyIcon,
-  AlertCircle, RefreshCw, PauseCircle, PlayCircle, ArrowDownCircle
+  AlertCircle, RefreshCw, ArrowUpDown, ArrowUp, ArrowDown
 } from 'lucide-react';
 import { cn } from '../../src/utils/cn';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 export interface LogEntry {
   id: string;
@@ -68,10 +72,9 @@ export interface LogViewerProps {
   maxEntries?: number;
   defaultCategory?: 'current' | 'archives' | string;
   enableLiveUpdates?: boolean;
-  enablePause?: boolean;
   enableAutoScroll?: boolean;
   autoScrollDefault?: boolean;
-  pausedDefault?: boolean;
+  newestFirst?: boolean;
 
   // Configuration
   categories?: LogCategory[];
@@ -79,6 +82,10 @@ export interface LogViewerProps {
   currentLogLevel?: string;
 
   // UI Options
+  /** Display mode: 'full' shows sidebar, 'logs' shows only live logs, 'archives' shows only archives */
+  mode?: 'full' | 'logs' | 'archives';
+  /** Show the header with title. Set to false when embedded in settings. */
+  showHeader?: boolean;
   showCategories?: boolean;
   showArchives?: boolean;
   height?: string;
@@ -129,10 +136,9 @@ export function LogViewer({
   maxEntries = 1000,
   defaultCategory = 'current',
   enableLiveUpdates = true,
-  enablePause = false,
   enableAutoScroll = false,
-  autoScrollDefault = true,
-  pausedDefault = false,
+  autoScrollDefault = false,
+  newestFirst = true,
   enableSearch = true,
   enableFilter = true,
   enableExport = true,
@@ -141,25 +147,32 @@ export function LogViewer({
   categories = defaultCategories,
   levelBadgeColors = defaultLevelBadgeColors,
   currentLogLevel = 'info',
+  mode = 'full',
+  showHeader = true,
   showCategories = true,
   showArchives = true,
-  height = 'calc(100vh-320px)',
+  height = 'calc(100vh - 320px)',
   className,
 }: LogViewerProps) {
   const [logs, setLogs] = useState<LogEntry[]>(externalLogs);
   const [filteredLogs, setFilteredLogs] = useState<LogEntry[]>([]);
   const [logFiles, setLogFiles] = useState<LogFile[]>(externalLogFiles);
   const [loading, setLoading] = useState(false);
-  const [activeCategory, setActiveCategory] = useState(defaultCategory);
+  // In 'logs' or 'archives' mode, force the category
+  const effectiveCategory = mode === 'logs' ? 'current' : mode === 'archives' ? 'archives' : defaultCategory;
+  const [activeCategory, setActiveCategory] = useState(effectiveCategory);
   const [searchTerm, setSearchTerm] = useState('');
   const [levelFilter, setLevelFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const autoRefreshRef = useRef<NodeJS.Timeout | null>(null);
   const [autoRefreshOn, setAutoRefreshOn] = useState(autoRefreshMs > 0);
-  const [autoScroll, setAutoScroll] = useState<boolean>(autoScrollDefault ?? true);
+  const [autoScroll, setAutoScroll] = useState<boolean>(autoScrollDefault ?? false);
   const virtuosoRef = useRef<VirtuosoHandle | null>(null);
-  const [isPaused, setIsPaused] = useState<boolean>(pausedDefault ?? false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [archiveToDelete, setArchiveToDelete] = useState<string | null>(null);
+  const [archiveSortField, setArchiveSortField] = useState<'filename' | 'size' | 'modified'>('modified');
+  const [archiveSortOrder, setArchiveSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const LevelChip = ({ level }: { level: string }) => {
     return (
@@ -229,13 +242,14 @@ export function LogViewer({
   useEffect(() => {
     if (externalLogs.length === 0) return;
     const normalized = coalesceStackTraces(externalLogs);
-    const sorted = normalized.sort(
-      (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-    );
+    const sorted = normalized.sort((a, b) => {
+      const diff = new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+      return newestFirst ? -diff : diff;
+    });
     setLogs(enforceMax(sorted));
     const cats = Array.from(new Set(sorted.map(l => l.category || l.source || '').filter(Boolean))).sort();
     setAvailableCategories(cats);
-  }, [externalLogs, maxEntries]);
+  }, [externalLogs, maxEntries, newestFirst]);
 
   useEffect(() => {
     setLogFiles(externalLogFiles);
@@ -258,7 +272,7 @@ export function LogViewer({
     if (categoryFilter !== 'all') {
       filtered = filtered.filter(log => {
         const logCategory = log.category || log.source || '';
-        return logCategory.toLowerCase().includes(categoryFilter.toLowerCase());
+        return logCategory === categoryFilter;
       });
     }
 
@@ -281,11 +295,11 @@ export function LogViewer({
 
   // Auto-refresh polling
   useEffect(() => {
-    if (autoRefreshRef.current && (!autoRefreshOn || autoRefreshMs <= 0 || !onFetchLogs || isPaused)) {
+    if (autoRefreshRef.current && (!autoRefreshOn || autoRefreshMs <= 0 || !onFetchLogs)) {
       clearInterval(autoRefreshRef.current);
       autoRefreshRef.current = null;
     }
-    if (!autoRefreshOn || autoRefreshMs <= 0 || !onFetchLogs || isPaused) return;
+    if (!autoRefreshOn || autoRefreshMs <= 0 || !onFetchLogs) return;
     if (autoRefreshRef.current) clearInterval(autoRefreshRef.current);
 
     autoRefreshRef.current = setInterval(() => {
@@ -293,10 +307,10 @@ export function LogViewer({
         .then((fetched) => {
           if (!fetched) return;
           const normalized = coalesceStackTraces(fetched);
-          const sorted = normalized.sort(
-            (a, b) =>
-              new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-          );
+          const sorted = normalized.sort((a, b) => {
+            const diff = new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+            return newestFirst ? -diff : diff;
+          });
           setLogs(enforceMax(sorted));
         })
         .catch((err) => {
@@ -310,7 +324,7 @@ export function LogViewer({
         autoRefreshRef.current = null;
       }
     };
-  }, [autoRefreshOn, autoRefreshMs, onFetchLogs, maxEntries, isPaused]);
+  }, [autoRefreshOn, autoRefreshMs, onFetchLogs, maxEntries, newestFirst]);
 
   const archivesFetchedRef = useRef(false);
 
@@ -319,18 +333,16 @@ export function LogViewer({
     let cancelled = false;
 
     const run = async () => {
-      if (isPaused) return;
-
       if (activeCategory === 'current' && onFetchLogs) {
         setLoading(true);
         try {
           const fetchedLogs = await onFetchLogs();
           if (cancelled || !fetchedLogs) return;
           const normalized = coalesceStackTraces(fetchedLogs);
-          const sorted = normalized.sort(
-            (a, b) =>
-              new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-          );
+          const sorted = normalized.sort((a, b) => {
+            const diff = new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+            return newestFirst ? -diff : diff;
+          });
           setLogs(enforceMax(sorted));
         } catch (error) {
           console.error('Failed to fetch logs:', error);
@@ -360,14 +372,13 @@ export function LogViewer({
     return () => {
       cancelled = true;
     };
-  }, [activeCategory, onFetchLogs, onFetchArchives, maxEntries]);
+  }, [activeCategory, onFetchLogs, onFetchArchives, maxEntries, newestFirst]);
 
   // Subscribe to log updates
   useEffect(() => {
-    if (!onLogReceived || !enableLiveUpdates || isPaused) return;
+    if (!onLogReceived || !enableLiveUpdates) return;
 
     const handleLog = (raw: PartialLogEntry | LogEntry) => {
-      if (isPaused) return;
       const log = normalizeLog(raw);
       setLogs(prev => {
         const currentLogs = prev || [];
@@ -389,23 +400,53 @@ export function LogViewer({
     };
 
     return onLogReceived(handleLog);
-  }, [onLogReceived, enableLiveUpdates, maxEntries, isPaused]);
+  }, [onLogReceived, enableLiveUpdates, maxEntries]);
 
   // Remove fetchLogs and fetchArchives functions as they cause infinite loops
   // We'll call onFetchLogs/onFetchArchives directly in the useEffect
 
-  const handleClearLogs = async () => {
+  const handleDeleteLogs = async () => {
     if (!onClearLogs) return;
-    if (!confirm('Clear all logs? This action cannot be undone.')) return;
-    await onClearLogs();
-    setLogs([]);
+    try {
+      await onClearLogs();
+      setLogs([]);
+      toast.success('Logs deleted successfully');
+    } catch (error) {
+      toast.error('Failed to delete logs');
+    }
+    setDeleteDialogOpen(false);
   };
 
   const handleExportLogs = async () => {
-    if (onExportLogs) {
-      await onExportLogs();
-    } else {
-      // Default export implementation
+    try {
+      if (onExportLogs) {
+        await onExportLogs();
+      } else {
+        // Default export implementation
+        const text = filteredLogs.map(l => {
+          const ts = formatTimestamp(l.timestamp);
+          const src = l.category || l.source ? ` [${l.category || l.source}]` : '';
+          const head = `${ts} ${l.level.toUpperCase()}${src} ${l.message}`;
+          const stack = l.metadata?.stack ? `\n${l.metadata.stack}` : '';
+          return head + stack;
+        }).join('\n');
+
+        const blob = new Blob([text], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `logs-${new Date().toISOString()}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+      toast.success('Logs exported successfully');
+    } catch (error) {
+      toast.error('Failed to export logs');
+    }
+  };
+
+  const handleCopyLogs = async () => {
+    try {
       const text = filteredLogs.map(l => {
         const ts = formatTimestamp(l.timestamp);
         const src = l.category || l.source ? ` [${l.category || l.source}]` : '';
@@ -413,26 +454,11 @@ export function LogViewer({
         const stack = l.metadata?.stack ? `\n${l.metadata.stack}` : '';
         return head + stack;
       }).join('\n');
-
-      const blob = new Blob([text], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `logs-${new Date().toISOString()}.txt`;
-      a.click();
-      URL.revokeObjectURL(url);
+      await navigator.clipboard.writeText(text);
+      toast.success('Logs copied to clipboard');
+    } catch (error) {
+      toast.error('Failed to copy logs');
     }
-  };
-
-  const handleCopyLogs = () => {
-    const text = filteredLogs.map(l => {
-      const ts = formatTimestamp(l.timestamp);
-      const src = l.category || l.source ? ` [${l.category || l.source}]` : '';
-      const head = `${ts} ${l.level.toUpperCase()}${src} ${l.message}`;
-      const stack = l.metadata?.stack ? `\n${l.metadata.stack}` : '';
-      return head + stack;
-    }).join('\n');
-    navigator.clipboard.writeText(text);
   };
 
   const formatTimestamp = (timestamp: string) => {
@@ -497,107 +523,109 @@ export function LogViewer({
     </div>
   );
 
-  const renderArchiveFile = (file: LogFile) => {
-    const filename = file.filename || file.name || 'unknown';
-    return (
-      <div
-        key={filename}
-        className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900"
-      >
-        <div className="flex items-center gap-3">
-          <Archive className="h-4 w-4 text-gray-400" />
-          <div>
-            <div className="font-medium text-sm">{filename}</div>
-            <div className="text-xs text-gray-500">
-              {formatFileSize(file.size)} • {new Date(file.modified).toLocaleDateString()}
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {onDownloadArchive && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => onDownloadArchive(filename)}
-            >
-              <Download className="h-4 w-4" />
-            </Button>
-          )}
-          {onDeleteArchive && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => onDeleteArchive(filename)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      </div>
-    );
+  // Sort archives
+  const sortedArchives = [...logFiles].sort((a, b) => {
+    const aFilename = a.filename || a.name || '';
+    const bFilename = b.filename || b.name || '';
+
+    let comparison = 0;
+    switch (archiveSortField) {
+      case 'filename':
+        comparison = aFilename.localeCompare(bFilename);
+        break;
+      case 'size':
+        comparison = a.size - b.size;
+        break;
+      case 'modified':
+        comparison = new Date(a.modified).getTime() - new Date(b.modified).getTime();
+        break;
+    }
+    return archiveSortOrder === 'asc' ? comparison : -comparison;
+  });
+
+  const handleArchiveSort = (field: 'filename' | 'size' | 'modified') => {
+    if (archiveSortField === field) {
+      setArchiveSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setArchiveSortField(field);
+      setArchiveSortOrder('desc');
+    }
+  };
+
+  const SortIcon = ({ field }: { field: 'filename' | 'size' | 'modified' }) => {
+    if (archiveSortField !== field) {
+      return <ArrowUpDown className="h-3 w-3 ml-1 opacity-50" />;
+    }
+    return archiveSortOrder === 'asc'
+      ? <ArrowUp className="h-3 w-3 ml-1" />
+      : <ArrowDown className="h-3 w-3 ml-1" />;
+  };
+
+  const handleDeleteArchive = async () => {
+    if (!archiveToDelete || !onDeleteArchive) return;
+    try {
+      await onDeleteArchive(archiveToDelete);
+      setLogFiles(prev => prev.filter(f => (f.filename || f.name) !== archiveToDelete));
+      toast.success('Archive deleted successfully');
+    } catch (error) {
+      toast.error('Failed to delete archive');
+    }
+    setArchiveToDelete(null);
   };
 
   const filteredCategories = showArchives ? categories : categories.filter(c => c.id !== 'archives');
+  const shouldShowSidebar = mode === 'full' && showCategories;
 
   return (
-    <div className={cn('space-y-6', className)}>
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Logs</h1>
-          <div className="text-muted-foreground flex items-center">
-            View system logs and diagnostic information • Current level:{' '}
-            <Badge className={cn('ml-1 text-xs px-2 py-0', levelBadgeColors[currentLogLevel] || levelBadgeColors.info)}>
-              {currentLogLevel.toUpperCase()}
-            </Badge>
+    <div className={cn('flex flex-col h-full', className)}>
+      {/* Header - only shown when showHeader is true */}
+      {showHeader && (
+        <div className="flex items-center justify-between mb-4 shrink-0">
+          <div>
+            <h1 className="text-3xl font-bold">Logs</h1>
+            <div className="text-muted-foreground flex items-center">
+              View system logs and diagnostic information • Current level:{' '}
+              <Badge className={cn('ml-1 text-xs px-2 py-0', levelBadgeColors[currentLogLevel] || levelBadgeColors.info)}>
+                {currentLogLevel.toUpperCase()}
+              </Badge>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {onFetchLogs && (
-            <>
-              <Button variant="outline" size="sm" onClick={() => onFetchLogs().then((l) => l && setLogs(enforceMax(coalesceStackTraces(l))))}>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh
-              </Button>
-              {autoRefreshMs > 0 && (
-                <Button
-                  variant={autoRefreshOn ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setAutoRefreshOn((v) => !v)}
-                >
-                  {autoRefreshOn ? 'Auto-Refresh On' : 'Auto-Refresh Off'}
-                </Button>
-              )}
-            </>
-          )}
           {activeCategory === 'current' && (
-            <>
-              {enablePause && (
-                <Button
-                  variant={isPaused ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setIsPaused((v) => !v)}
-                >
-                  {isPaused ? (
-                    <>
-                      <PlayCircle className="h-4 w-4 mr-2" />
-                      Resume
-                    </>
-                  ) : (
-                    <>
-                      <PauseCircle className="h-4 w-4 mr-2" />
-                      Pause
-                    </>
-                  )}
-                </Button>
+            <div className="flex items-center gap-4">
+              {/* Toggle switches */}
+              {autoRefreshMs > 0 && (
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="auto-refresh"
+                    checked={autoRefreshOn}
+                    onCheckedChange={setAutoRefreshOn}
+                  />
+                  <Label htmlFor="auto-refresh" className="text-sm cursor-pointer">
+                    Auto-refresh
+                  </Label>
+                </div>
               )}
               {enableAutoScroll && (
-                <Button
-                  variant={autoScroll ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setAutoScroll((v) => !v)}
-                >
-                  <ArrowDownCircle className="h-4 w-4 mr-2" />
-                  {autoScroll ? 'Auto-scroll On' : 'Auto-scroll Off'}
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="auto-scroll"
+                    checked={autoScroll}
+                    onCheckedChange={setAutoScroll}
+                  />
+                  <Label htmlFor="auto-scroll" className="text-sm cursor-pointer">
+                    Auto-scroll
+                  </Label>
+                </div>
+              )}
+
+              {/* Divider */}
+              <div className="h-6 w-px bg-border" />
+
+              {/* Action buttons */}
+              {onFetchLogs && (
+                <Button variant="outline" size="sm" onClick={() => onFetchLogs().then((l) => l && setLogs(enforceMax(coalesceStackTraces(l))))}>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh
                 </Button>
               )}
               {enableCopy && (
@@ -613,18 +641,76 @@ export function LogViewer({
                 </Button>
               )}
               {onClearLogs && enableClear && (
-                <Button variant="outline" size="sm" onClick={handleClearLogs}>
+                <Button variant="destructive" size="sm" onClick={() => setDeleteDialogOpen(true)}>
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Clear
+                  Delete
                 </Button>
               )}
-            </>
+            </div>
           )}
         </div>
-      </div>
+      )}
 
-      <div className="flex gap-6">
-        {showCategories && (
+      {/* Toolbar for embedded mode (no header) */}
+      {!showHeader && activeCategory === 'current' && (
+        <div className="flex items-center justify-between mb-4 shrink-0">
+          <div className="flex items-center gap-4">
+            {autoRefreshMs > 0 && (
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="auto-refresh-embedded"
+                  checked={autoRefreshOn}
+                  onCheckedChange={setAutoRefreshOn}
+                />
+                <Label htmlFor="auto-refresh-embedded" className="text-sm cursor-pointer">
+                  Auto-refresh
+                </Label>
+              </div>
+            )}
+            {enableAutoScroll && (
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="auto-scroll-embedded"
+                  checked={autoScroll}
+                  onCheckedChange={setAutoScroll}
+                />
+                <Label htmlFor="auto-scroll-embedded" className="text-sm cursor-pointer">
+                  Auto-scroll
+                </Label>
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {onFetchLogs && (
+              <Button variant="outline" size="sm" onClick={() => onFetchLogs().then((l) => l && setLogs(enforceMax(coalesceStackTraces(l))))}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
+            )}
+            {enableCopy && (
+              <Button variant="outline" size="sm" onClick={handleCopyLogs}>
+                <CopyIcon className="h-4 w-4 mr-2" />
+                Copy
+              </Button>
+            )}
+            {enableExport && (
+              <Button variant="outline" size="sm" onClick={handleExportLogs}>
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+            )}
+            {onClearLogs && enableClear && (
+              <Button variant="destructive" size="sm" onClick={() => setDeleteDialogOpen(true)}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="flex gap-6 flex-1 min-h-0">
+        {shouldShowSidebar && (
           <Card className="w-64 h-fit">
             <div className="p-4">
               <h3 className="font-semibold mb-4">Categories</h3>
@@ -652,27 +738,118 @@ export function LogViewer({
           </Card>
         )}
 
-        <div className="flex-1">
+        <div className="flex-1 min-h-0 flex flex-col">
           {activeCategory === 'archives' ? (
-            <Card className="p-6">
-              <div className="mb-4">
-                <h2 className="text-xl font-semibold">Log Archives</h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Download or manage archived log files
-                </p>
-              </div>
-              <div className="space-y-2">
-                {logFiles.length === 0 ? (
+            <Card className="p-0 overflow-hidden flex-1 flex flex-col min-h-0">
+              {/* Only show header in full mode */}
+              {mode === 'full' && (
+                <div className="px-6 py-4 border-b shrink-0">
+                  <h2 className="text-xl font-semibold">Log Archives</h2>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Download or manage archived log files • {sortedArchives.length} file{sortedArchives.length !== 1 ? 's' : ''}
+                  </p>
+                </div>
+              )}
+              {/* File count for embedded mode */}
+              {mode !== 'full' && (
+                <div className="px-4 py-2 border-b shrink-0 text-sm text-muted-foreground">
+                  {sortedArchives.length} archive{sortedArchives.length !== 1 ? 's' : ''} available
+                </div>
+              )}
+              {sortedArchives.length === 0 ? (
+                <div className="p-6">
                   <Alert>
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
                       No archived log files available
                     </AlertDescription>
                   </Alert>
-                ) : (
-                  logFiles.map(renderArchiveFile)
-                )}
-              </div>
+                </div>
+              ) : (
+                <div className="overflow-auto" style={{ maxHeight: height }}>
+                  <table className="w-full">
+                    <thead className="bg-background sticky top-0 z-10 border-b">
+                      <tr>
+                        <th className="text-left px-4 py-2 font-medium text-sm">
+                          <button
+                            className="flex items-center hover:text-foreground"
+                            onClick={() => handleArchiveSort('filename')}
+                          >
+                            Name
+                            <SortIcon field="filename" />
+                          </button>
+                        </th>
+                        <th className="text-right px-4 py-2 font-medium text-sm w-28">
+                          <button
+                            className="flex items-center justify-end hover:text-foreground ml-auto"
+                            onClick={() => handleArchiveSort('size')}
+                          >
+                            Size
+                            <SortIcon field="size" />
+                          </button>
+                        </th>
+                        <th className="text-right px-4 py-2 font-medium text-sm w-36">
+                          <button
+                            className="flex items-center justify-end hover:text-foreground ml-auto"
+                            onClick={() => handleArchiveSort('modified')}
+                          >
+                            Modified
+                            <SortIcon field="modified" />
+                          </button>
+                        </th>
+                        <th className="text-right px-4 py-2 font-medium text-sm w-24">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sortedArchives.map((file) => {
+                        const filename = file.filename || file.name || 'unknown';
+                        return (
+                          <tr key={filename} className="border-t hover:bg-muted/30">
+                            <td className="px-4 py-2">
+                              <div className="flex items-center gap-2">
+                                <Archive className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                <span className="font-mono text-sm truncate">{filename}</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-2 text-right text-sm text-muted-foreground font-mono">
+                              {formatFileSize(file.size)}
+                            </td>
+                            <td className="px-4 py-2 text-right text-sm text-muted-foreground">
+                              {format(new Date(file.modified), 'MMM d, yyyy HH:mm')}
+                            </td>
+                            <td className="px-4 py-2 text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                {onDownloadArchive && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-7 w-7 p-0"
+                                    onClick={() => onDownloadArchive(filename)}
+                                    title="Download"
+                                  >
+                                    <Download className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                {onDeleteArchive && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                                    onClick={() => setArchiveToDelete(filename)}
+                                    title="Delete"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </Card>
           ) : (
             <Card className="p-0 overflow-hidden">
@@ -680,18 +857,34 @@ export function LogViewer({
                 <div className="flex items-center gap-3">
                   {enableFilter && (
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">Filter:</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Level:</span>
                       <Select value={levelFilter} onValueChange={setLevelFilter}>
-                        <SelectTrigger className="w-32 h-8">
-                          <SelectValue />
+                        <SelectTrigger className="w-36 h-8">
+                          <SelectValue>
+                            {levelFilter === 'all' ? (
+                              <span>All Levels</span>
+                            ) : (
+                              <LevelChip level={levelFilter} />
+                            )}
+                          </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All Levels</SelectItem>
-                          <SelectItem value="error">Error</SelectItem>
-                          <SelectItem value="warn">Warning</SelectItem>
-                          <SelectItem value="info">Info</SelectItem>
-                          <SelectItem value="debug">Debug</SelectItem>
-                          <SelectItem value="verbose">Verbose</SelectItem>
+                          <SelectItem value="error">
+                            <LevelChip level="error" />
+                          </SelectItem>
+                          <SelectItem value="warn">
+                            <LevelChip level="warn" />
+                          </SelectItem>
+                          <SelectItem value="info">
+                            <LevelChip level="info" />
+                          </SelectItem>
+                          <SelectItem value="debug">
+                            <LevelChip level="debug" />
+                          </SelectItem>
+                          <SelectItem value="verbose">
+                            <LevelChip level="verbose" />
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -760,6 +953,28 @@ export function LogViewer({
           )}
         </div>
       </div>
+
+      {/* Delete logs confirmation dialog */}
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete Logs"
+        description="Are you sure you want to delete all logs? This action cannot be undone."
+        confirmLabel="Delete"
+        variant="destructive"
+        onConfirm={handleDeleteLogs}
+      />
+
+      {/* Delete archive confirmation dialog */}
+      <ConfirmDialog
+        open={!!archiveToDelete}
+        onOpenChange={(open) => !open && setArchiveToDelete(null)}
+        title="Delete Archive"
+        description={`Are you sure you want to delete "${archiveToDelete}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        variant="destructive"
+        onConfirm={handleDeleteArchive}
+      />
     </div>
   );
 }

@@ -9,6 +9,8 @@ export interface FilterOption {
   id: string;
   label: string;
   render: () => React.ReactNode;
+  /** Filter type - 'multi' filters get more horizontal space */
+  type?: 'single' | 'multi';
 }
 
 export interface TableFiltersProps {
@@ -42,6 +44,10 @@ export function TableFilters({
   className,
   children,
 }: TableFiltersProps) {
+  // Check if any filter needs wider layout (multi-select filters)
+  const hasMultiFilters = filters?.some(f => f.type === 'multi');
+  const popoverWidth = hasMultiFilters ? 'w-[420px]' : 'w-80';
+
   return (
     <div className={cn('flex items-center gap-3 flex-wrap', className)}>
       {/* Search Input */}
@@ -81,7 +87,7 @@ export function TableFilters({
             </Button>
           </PopoverTrigger>
           <PopoverContent
-            className="w-80 overflow-y-auto"
+            className={cn(popoverWidth, 'overflow-y-auto')}
             align="start"
             collisionPadding={16}
             style={{ maxHeight: 'var(--radix-popover-content-available-height)' }}
@@ -101,7 +107,7 @@ export function TableFilters({
                 )}
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {filters.map((filter) => (
                   <div key={filter.id} className="space-y-1.5">
                     <label className="text-xs font-medium text-muted-foreground">

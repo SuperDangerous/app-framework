@@ -238,13 +238,15 @@ export function useResizableColumns({
   const getColumnStyle = useCallback(
     (columnKey: string): React.CSSProperties => {
       const currentWidth = state.widths[columnKey] || DEFAULT_WIDTH;
+      const config = getColumnConfig(columnKey);
+      const minWidth = config?.minWidth || DEFAULT_MIN_WIDTH;
       return {
         width: currentWidth,
-        minWidth: currentWidth,
+        minWidth: minWidth, // Use configured min width, not current width
         position: 'relative',
       };
     },
-    [state.widths]
+    [state.widths, getColumnConfig]
   );
 
   // Calculate total table width from all columns

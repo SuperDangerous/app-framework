@@ -40,7 +40,15 @@ export interface SettingsCategory {
   label: string;
   icon?: LucideIcon | string | React.ReactNode;
   description?: string;
-  settings: SettingDefinition[];
+  /** Settings for form-based categories */
+  settings?: SettingDefinition[];
+  /** Custom component to render instead of settings form */
+  component?: React.ComponentType<SettingsCategoryComponentProps>;
+}
+
+export interface SettingsCategoryComponentProps {
+  /** The category definition */
+  category: SettingsCategory;
 }
 
 export interface CustomFieldProps {
@@ -55,12 +63,12 @@ export interface SettingsFrameworkProps {
   // Required props
   categories: SettingsCategory[];
   onSave: (values: Record<string, any>) => Promise<void>;
-  
+
   // Optional props for customization
   onLoad?: () => Promise<Record<string, any>>;
   onValidate?: (values: Record<string, any>) => Record<string, string> | null;
   onRestartRequired?: (changedSettings: string[]) => void;
-  
+
   // UI customization
   title?: string;
   description?: string;
@@ -69,18 +77,22 @@ export interface SettingsFrameworkProps {
   customFields?: Record<string, React.ComponentType<CustomFieldProps>>;
   renderCategory?: (category: SettingsCategory, children: ReactNode) => ReactNode;
   renderSetting?: (setting: SettingDefinition, field: ReactNode) => ReactNode;
-  
+
   // Behavior customization
   autoSave?: boolean;
   autoSaveDelay?: number;
   confirmReset?: boolean;
   persistState?: boolean;
-  
+
   // Styling
   className?: string;
   containerClassName?: string;
   categoryClassName?: string;
   settingClassName?: string;
+  /** Height of the settings container (default: calc(100vh - 200px)) */
+  height?: string;
+  /** Max width for settings content to avoid overly wide inputs */
+  maxContentWidth?: string;
 }
 
 export function SettingsFramework({
@@ -103,7 +115,9 @@ export function SettingsFramework({
   className,
   containerClassName,
   categoryClassName,
-  settingClassName
+  settingClassName,
+  height = 'calc(100vh - 200px)',
+  maxContentWidth = '800px'
 }: SettingsFrameworkProps) {
   const [values, setValues] = useState<Record<string, any>>({});
   const [initialValues, setInitialValues] = useState<Record<string, any>>({});
@@ -120,7 +134,7 @@ export function SettingsFramework({
   const getDefaultValues = () => {
     const defaults: Record<string, any> = {};
     categories.forEach(category => {
-      category.settings.forEach(setting => {
+      (category.settings || []).forEach(setting => {
         defaults[setting.key] = setting.defaultValue;
       });
     });
@@ -188,9 +202,9 @@ export function SettingsFramework({
   const validateAll = (): boolean => {
     const newErrors: Record<string, string> = {};
     let hasErrors = false;
-    
+
     categories.forEach(category => {
-      category.settings.forEach(setting => {
+      (category.settings || []).forEach(setting => {
         const error = validateField(setting, values[setting.key]);
         if (error) {
           newErrors[setting.key] = error;
@@ -223,7 +237,7 @@ export function SettingsFramework({
       
       const restartSettings = changedKeys.filter(key => {
         const setting = categories
-          .flatMap(c => c.settings)
+          .flatMap(c => c.settings || [])
           .find(s => s.key === key);
         return setting?.requiresRestart;
       });
@@ -281,13 +295,12 @@ export function SettingsFramework({
     const showPassword = showPasswords[setting.key];
     if (setting.showIf && !setting.showIf(values)) return null;
 
+    // Default to medium width for most inputs to avoid overly wide fields
     const widthClass = setting.inputWidth === 'small'
       ? 'max-w-[180px]'
-      : setting.inputWidth === 'medium'
-        ? 'max-w-sm'
-        : setting.inputWidth === 'large'
-          ? 'w-full'
-          : undefined;
+      : setting.inputWidth === 'large'
+        ? 'w-full max-w-xl'
+        : 'max-w-sm'; // medium is the default
     
     // Custom field component
     if (setting.type === 'custom' || setting.customComponent) {
@@ -398,11 +411,11 @@ export function SettingsFramework({
   };
 
   const activeSettings = categories.find(cat => cat.id === activeCategory);
-  
+
   return (
-    <div className={cn("space-y-6", className)}>
+    <div className={cn("flex flex-col", className)} style={{ height }}>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6 shrink-0">
         <div>
           <h1 className="text-3xl font-bold">{title}</h1>
           <p className="text-muted-foreground">{description}</p>
@@ -458,7 +471,7 @@ export function SettingsFramework({
 
       {/* Error message display */}
       {saveError && (
-        <Alert variant="destructive" className="mb-6">
+        <Alert variant="destructive" className="mb-6 shrink-0">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
             {saveError}
@@ -466,13 +479,17 @@ export function SettingsFramework({
         </Alert>
       )}
 
-      <div className={cn("flex gap-6", containerClassName)}>
+      <div className={cn("flex gap-6 flex-1 min-h-0", containerClassName)}>
         {/* Categories Sidebar */}
-        <Card className="w-64 h-fit">
-          <div className="p-4">
-            <h3 className="font-semibold mb-4">Categories</h3>
+        <Card className="w-56 shrink-0 flex flex-col min-h-0">
+          <div className="p-4 border-b shrink-0">
+            <h3 className="font-semibold">Categories</h3>
+          </div>
+          <div className="flex-1 overflow-y-auto p-2 min-h-0">
             <div className="space-y-1">
               {categories.map((category) => {
+                // Render icon if it exists and is a valid React component
+                const IconComponent = category.icon as LucideIcon | undefined;
                 return (
                   <button
                     key={category.id}
@@ -485,14 +502,8 @@ export function SettingsFramework({
                       categoryClassName
                     )}
                   >
-                    {typeof category.icon === 'function' && (
-                      // Only render Lucide-like icons; skip arbitrary React nodes to avoid invalid children
-                      (() => {
-                        const IconComponent = category.icon as LucideIcon;
-                        return <IconComponent className="h-4 w-4" />;
-                      })()
-                    )}
-                    <span className="text-left">{category.label}</span>
+                    {IconComponent && <IconComponent className="h-4 w-4 shrink-0" />}
+                    <span className="text-left truncate">{category.label}</span>
                   </button>
                 );
               })}
@@ -501,19 +512,33 @@ export function SettingsFramework({
         </Card>
 
         {/* Settings Content */}
-        <div className="flex-1">
+        <div className="flex-1 min-h-0 flex flex-col">
           {loading ? (
             <Card className="p-8">
               <div className="flex items-center justify-center">
                 <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             </Card>
+          ) : activeSettings?.component ? (
+            // Render custom component category
+            <Card className="p-6 flex-1 min-h-0 overflow-y-auto">
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold">{activeSettings.label}</h2>
+                {activeSettings.description && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {activeSettings.description}
+                  </p>
+                )}
+              </div>
+              <activeSettings.component category={activeSettings} />
+            </Card>
           ) : activeSettings ? (
-            <Card className="p-6">
+            <Card className="p-6 flex-1 min-h-0 overflow-y-auto">
+              <div style={{ maxWidth: maxContentWidth }}>
               {renderCategory ? (
                 renderCategory(activeSettings, (
                   <div className="space-y-6">
-                    {activeSettings.settings.map(setting => {
+                    {(activeSettings.settings || []).map(setting => {
                       const field = renderField(setting);
                       if (!field) return null;
                       
@@ -588,10 +613,10 @@ export function SettingsFramework({
                   </div>
                   
                   <div className="space-y-6">
-                    {activeSettings.settings.map(setting => {
+                    {(activeSettings.settings || []).map(setting => {
                       const field = renderField(setting);
                       if (!field) return null;
-                      
+
                       const settingElement = (
                         <div key={setting.key} className={cn("space-y-2", settingClassName)}>
                           <div className="flex items-center justify-between">
@@ -651,6 +676,7 @@ export function SettingsFramework({
                   </div>
                 </>
               )}
+              </div>
             </Card>
           ) : (
             <Card className="p-8">

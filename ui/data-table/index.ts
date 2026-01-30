@@ -63,6 +63,7 @@ export {
   BatchActionsBar,
   ColumnVisibility,
   TableFilters,
+  MultiSelectFilter,
 } from './components';
 
 export type {
@@ -81,4 +82,6 @@ export type {
   BatchActionsBarProps,
   TableFiltersProps,
   TableFilterOption,
+  MultiSelectFilterProps,
+  MultiSelectOption,
 } from './components';

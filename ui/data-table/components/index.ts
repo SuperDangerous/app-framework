@@ -39,3 +39,6 @@ export { ColumnVisibility } from './ColumnVisibility';
 
 export { TableFilters } from './TableFilters';
 export type { TableFiltersProps, FilterOption as TableFilterOption } from './TableFilters';
+
+export { MultiSelectFilter } from './MultiSelectFilter';
+export type { MultiSelectFilterProps, MultiSelectOption } from './MultiSelectFilter';
