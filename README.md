@@ -13,7 +13,7 @@ A comprehensive, production-ready framework for building enterprise internal too
 ### Features
 
 - **[WebSocket](./docs/WEBSOCKET.md)** - Real-time communication implementation
-- **[Desktop](./docs/DESKTOP.md)** - Desktop application support with Tauri
+- **[Desktop](./docs/DESKTOP.md)** - Desktop application support with Electron
 - **[Bundling](./docs/BUNDLING.md)** - Desktop bundling guide
 - **[AI](./docs/AI.md)** - AI service integration
 - **[Patterns](./docs/PATTERNS.md)** - Proven architectural patterns

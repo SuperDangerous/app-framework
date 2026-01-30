@@ -2,14 +2,14 @@
 
 ## Overview
 
-The SuperDangerous Application Framework is a comprehensive full-stack TypeScript framework designed for building industrial IoT applications. It provides a robust foundation with built-in support for real-time communication, desktop deployment via Tauri, and extensive device simulation capabilities.
+The SuperDangerous Application Framework is a comprehensive full-stack TypeScript framework designed for building industrial IoT applications. It provides a robust foundation with built-in support for real-time communication, desktop deployment via Electron, and extensive device simulation capabilities.
 
 ## Architecture Principles
 
 ### 1. Clear Separation of Concerns
 - **Backend (`src/`)**: Server-side logic, APIs, and business services
 - **Frontend (`ui/`)**: React-based user interface components
-- **Desktop (`desktop/`)**: Tauri configuration for desktop deployment
+- **Desktop (`desktop/`)**: Electron configuration for desktop deployment
 
 ### 2. Modular Service Architecture
 - Core server functionality managed by `StandardServer`
@@ -123,12 +123,9 @@ epi-app-framework/
 │   ├── tsconfig.json      # TypeScript config
 │   └── vite.config.ts     # Vite bundler config
 │
-├── desktop/               # Desktop Application (Tauri)
-│   ├── src-tauri/        # Tauri backend (Rust)
-│   │   ├── src/
-│   │   │   └── main.rs   # Tauri main process
-│   │   ├── Cargo.toml    # Rust dependencies
-│   │   └── tauri.conf.json # Tauri configuration
+├── electron/              # Desktop Application (Electron)
+│   ├── main.cjs          # Electron main process
+│   ├── preload.cjs       # Preload script for IPC
 │   │
 │   └── icons/            # Application icons
 │       └── icon.png
@@ -215,17 +212,17 @@ Real-time updates via Socket.IO:
 
 ### Desktop Deployment
 
-#### Tauri Integration
-- Rust-based backend for native performance
-- Secure IPC communication
-- Small bundle size
+#### Electron Integration
+- Node.js-based desktop runtime
+- IPC communication via preload scripts
 - Cross-platform support (Windows, macOS, Linux)
+- electron-builder for packaging and distribution
 
 ## Data Flow
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Tauri     │────▶│   React UI  │────▶│   Backend   │
+│  Electron   │────▶│   React UI  │────▶│   Backend   │
 │   Desktop   │     │   (Vite)    │     │   (Node.js) │
 └─────────────┘     └─────────────┘     └─────────────┘
        │                   │                    │
@@ -277,7 +274,7 @@ npm run dev
 cd ui && npm run dev
 
 # Desktop development
-cd desktop && npm run tauri dev
+npm run electron:dev
 ```
 
 ### Testing Strategy
@@ -292,7 +289,7 @@ cd desktop && npm run tauri dev
 npm run build
 
 # Desktop application
-cd desktop && npm run tauri build
+npm run electron:build
 
 # Docker deployment
 docker build -t epi-framework .

@@ -18,13 +18,13 @@
 
 ### Phase 2: Electron Migration (replace Tauri)
 
-- [ ] Framework: remove Tauri scaffolding (desktop/rust templates, tauri CLI commands, tauri bundler/sidecar code, docs). Add Electron main/preload templates and IPC bridge helpers.
-- [ ] Add Electron build scripts (dev/prod) and package config (electron-builder/forge) for the framework templates.
-- [ ] Apps:
-  - [ ] cpcodebase: swap Tauri for Electron (dev launcher, packaged build), replace any Tauri API calls with IPC equivalents.
-  - [ ] app-template: same as cpcodebase.
-  - [ ] modbus-simulator: same as cpcodebase.
-- [ ] Update docs: development, packaging, IPC API surface, and migration notes.
+- [x] Framework: remove Tauri scaffolding (desktop/rust templates, tauri CLI commands, tauri bundler/sidecar code, docs). Add Electron main/preload templates and IPC bridge helpers.
+- [x] Add Electron build scripts (dev/prod) and package config (electron-builder/forge) for the framework templates.
+- [x] Apps:
+  - [x] cpcodebase: swap Tauri for Electron (dev launcher, packaged build), replace any Tauri API calls with IPC equivalents.
+  - [x] app-template: same as cpcodebase.
+  - [x] modbus-simulator: same as cpcodebase.
+- [x] Update docs: development, packaging, IPC API surface, and migration notes.
 
 ### Phase 3: Snap Packaging (Edge-style)
 

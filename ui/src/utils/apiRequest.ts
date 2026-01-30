@@ -33,11 +33,6 @@ export class ApiError extends Error {
  * Get the API base URL based on environment
  */
 function getApiBaseUrl(): string {
-  // Check if running in Tauri desktop app
-  if (window.__TAURI__) {
-    return 'http://localhost:3000';
-  }
-  
   // Check for environment variable
   if (import.meta.env?.VITE_API_URL) {
     return import.meta.env.VITE_API_URL;
