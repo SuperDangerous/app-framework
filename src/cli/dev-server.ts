@@ -106,8 +106,10 @@ class DevServerOrchestrator {
 
     // Show any buffered important messages
     if (this.outputBuffer.length > 0) {
-      logger.info("\n" + chalk.gray("Recent activity:"));
-      this.outputBuffer.forEach((msg) => logger.info(msg));
+      console.log("\n" + chalk.gray("Recent activity:"));
+      // Write directly to avoid adding duplicate timestamps
+      // (backend output already has timestamps from the backend logger)
+      this.outputBuffer.forEach((msg) => console.log(msg));
       this.outputBuffer = [];
     }
   }
@@ -130,7 +132,6 @@ class DevServerOrchestrator {
     this.backendProcess = spawn(cmd, args, {
       stdio: ["inherit", "pipe", "pipe"],
       shell: true,
-      detached: true, // Create a new process group
       env: {
         ...process.env,
         LOG_LEVEL: "warn", // Only show warnings and errors
@@ -168,22 +169,20 @@ class DevServerOrchestrator {
         this.showPortConflictError(this.config.backendPort, "backend");
       }
 
-      // Show errors
-      if (
-        output.toLowerCase().includes("error") &&
-        !output.includes("ExperimentalWarning")
-      ) {
-        const lines = output.trim().split("\n");
-        lines.forEach((line: string) => {
-          if (line.trim()) {
-            const msg = chalk.red(`[Backend] ${line.trim()}`);
-            if (this.hasShownBanner) {
-              logger.error(msg);
-            } else {
-              this.outputBuffer.push(msg);
-            }
-          }
-        });
+      // Pass through backend stdout, but filter out the backend's startup banner
+      // (the dev-server shows its own banner, so we don't want duplicates)
+      // Banner lines typically contain box-drawing characters: ╭ ╰ │ ─
+      const isBannerLine = /[╭╰│─╮╯]/.test(output) ||
+                           output.includes('Press Ctrl+C') ||
+                           /^\s*(v\d+\.\d+\.\d+|Environment:|Framework:)\s*$/.test(output.trim());
+
+      if (output.trim() && !output.includes("ExperimentalWarning") && !isBannerLine) {
+        if (this.hasShownBanner) {
+          process.stdout.write(output);
+        } else {
+          // Buffer output until banner is shown
+          this.outputBuffer.push(output.trim());
+        }
       }
     });
 
@@ -198,8 +197,8 @@ class DevServerOrchestrator {
         this.showPortConflictError(this.config.backendPort, "backend");
       }
 
-      // For backend stderr, just pass it through as-is to preserve formatting
-      // The backend logger already handles coloring appropriately
+      // Pass through backend stderr as-is to preserve formatting
+      // The backend logger already handles timestamps and coloring
       if (output.trim() && !output.includes("ExperimentalWarning")) {
         process.stderr.write(output);
       }
@@ -318,7 +317,7 @@ class DevServerOrchestrator {
         this.frontendProcess = spawn(cmd, args, {
           stdio: ["inherit", "pipe", "pipe"],
           shell: true,
-          detached: true,
+
           cwd: path.join(process.cwd(), dir), // Run in the subdirectory
           env: {
             ...process.env,
@@ -334,7 +333,7 @@ class DevServerOrchestrator {
         this.frontendProcess = spawn(cmd, args, {
           stdio: ["inherit", "pipe", "pipe"],
           shell: true,
-          detached: true,
+
           cwd: process.cwd(),
           env: {
             ...process.env,
@@ -359,7 +358,6 @@ class DevServerOrchestrator {
       this.frontendProcess = spawn(cmd, args, {
         stdio: ["inherit", "pipe", "pipe"],
         shell: true,
-        detached: true, // Create a new process group
         cwd: process.cwd(), // Explicitly set working directory
         env: {
           ...process.env,
@@ -593,37 +591,32 @@ class DevServerOrchestrator {
     }, 5000);
   }
 
-  private cleanup() {
-    // Kill process groups to ensure all child processes are terminated
-    if (this.backendProcess && this.backendProcess.pid) {
-      try {
-        // Kill the entire process group (negative PID)
-        process.kill(-this.backendProcess.pid, "SIGTERM");
-      } catch (_e) {
-        // Fallback to regular kill
-        try {
-          this.backendProcess.kill("SIGTERM");
-        } catch (_err) {
-          // Process might already be dead
-        }
-      }
-      this.backendProcess = null;
+  private killProcess(proc: ChildProcess | null) {
+    if (!proc || !proc.pid) return;
+    const pid = proc.pid;
+    try {
+      proc.kill("SIGTERM");
+    } catch (_e) {
+      // Process might already be dead
     }
+    // SIGKILL fallback after 500ms if the process is still alive
+    setTimeout(() => {
+      try {
+        // Check if process is still running (signal 0 = existence check)
+        process.kill(pid, 0);
+        // Still alive — force kill
+        process.kill(pid, "SIGKILL");
+      } catch (_e) {
+        // Already dead — nothing to do
+      }
+    }, 500);
+  }
 
-    if (this.frontendProcess && this.frontendProcess.pid) {
-      try {
-        // Kill the entire process group (negative PID)
-        process.kill(-this.frontendProcess.pid, "SIGTERM");
-      } catch (_e) {
-        // Fallback to regular kill
-        try {
-          this.frontendProcess.kill("SIGTERM");
-        } catch (_err) {
-          // Process might already be dead
-        }
-      }
-      this.frontendProcess = null;
-    }
+  private cleanup() {
+    this.killProcess(this.backendProcess);
+    this.backendProcess = null;
+    this.killProcess(this.frontendProcess);
+    this.frontendProcess = null;
   }
 
   private async checkPort(port: number): Promise<boolean> {
@@ -788,12 +781,17 @@ class DevServerOrchestrator {
       logger.info(chalk.yellow("\n\nShutting down..."));
       this.cleanup();
       // Force exit after a delay if processes don't terminate
-      setTimeout(() => process.exit(0), 1000);
+      setTimeout(() => process.exit(0), 1500);
     });
 
     process.on("SIGTERM", () => {
       this.cleanup();
-      process.exit(0);
+      setTimeout(() => process.exit(0), 1500);
+    });
+
+    // Safety net: ensure child processes are cleaned up on any exit
+    process.on("exit", () => {
+      this.cleanup();
     });
   }
 }
