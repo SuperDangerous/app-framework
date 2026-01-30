@@ -104,14 +104,9 @@ class DevServerOrchestrator {
 
     this.hasShownBanner = true;
 
-    // Show any buffered important messages
-    if (this.outputBuffer.length > 0) {
-      console.log("\n" + chalk.gray("Recent activity:"));
-      // Write directly to avoid adding duplicate timestamps
-      // (backend output already has timestamps from the backend logger)
-      this.outputBuffer.forEach((msg) => console.log(msg));
-      this.outputBuffer = [];
-    }
+    // Discard buffered output — these are routine startup logs that
+    // arrived before the banner. The banner itself signals readiness.
+    this.outputBuffer = [];
   }
 
   private parseCommand(command: string): { cmd: string; args: string[] } {
