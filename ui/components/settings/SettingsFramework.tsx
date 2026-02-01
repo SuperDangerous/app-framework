@@ -521,8 +521,8 @@ export function SettingsFramework({
             </Card>
           ) : activeSettings?.component ? (
             // Render custom component category
-            <Card className="p-6 flex-1 min-h-0 overflow-y-auto">
-              <div className="mb-6">
+            <Card className="p-6 flex-1 min-h-0 flex flex-col overflow-hidden">
+              <div className="mb-6 flex-shrink-0">
                 <h2 className="text-xl font-semibold">{activeSettings.label}</h2>
                 {activeSettings.description && (
                   <p className="text-sm text-muted-foreground mt-1">
@@ -530,7 +530,9 @@ export function SettingsFramework({
                   </p>
                 )}
               </div>
-              <activeSettings.component category={activeSettings} />
+              <div className="flex-1 min-h-0">
+                <activeSettings.component category={activeSettings} />
+              </div>
             </Card>
           ) : activeSettings ? (
             <Card className="p-6 flex-1 min-h-0 overflow-y-auto">
