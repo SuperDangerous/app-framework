@@ -1,6 +1,6 @@
 {
   "name": "@superdangerous/app-framework",
-  "version": "4.16.23",
+  "version": "4.16.24",
   "description": "Opinionated TypeScript framework for structured vibecoding - building internal web and desktop apps with batteries included",
   "type": "module",
   "main": "dist/index.js",
