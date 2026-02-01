@@ -28,6 +28,14 @@ export interface AppLayoutProps {
   connectionStatusUrl?: string;
   className?: string;
   primaryColor?: string;
+  /** 'stacked' = current two-row layout (default), 'inline' = nav beside logo in one row */
+  navLayout?: 'stacked' | 'inline';
+  /** 'bar' = current full-width bg block (default), 'pill' = rounded pill highlight */
+  navActiveStyle?: 'bar' | 'pill';
+  /** Custom class for the <header> element (replaces default 'bg-black') */
+  headerClassName?: string;
+  /** Custom class for the <nav> element (replaces default 'bg-[#444444]'); unused in inline mode */
+  navClassName?: string;
 }
 
 /**
@@ -48,7 +56,11 @@ export function AppLayout({
   authenticated = true,
   connectionStatusUrl,
   className,
-  primaryColor = '#3b82f6'
+  primaryColor = '#3b82f6',
+  navLayout = 'stacked',
+  navActiveStyle = 'bar',
+  headerClassName,
+  navClassName
 }: AppLayoutProps) {
   // Safe useLocation - returns a default if not in Router context
   let location = { pathname: '/' };
@@ -76,12 +88,71 @@ export function AppLayout({
     }
   };
 
+  const isInline = navLayout === 'inline';
+  const isPill = navActiveStyle === 'pill';
+
+  const getNavLinkClasses = (isActive: boolean) => {
+    if (isPill) {
+      return cn(
+        "flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+        isActive
+          ? "text-white"
+          : "text-gray-300 hover:bg-white/10"
+      );
+    }
+    // bar style (default)
+    return cn(
+      "flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors",
+      isActive
+        ? "text-white"
+        : "text-gray-300 hover:bg-[#555555] hover:text-white"
+    );
+  };
+
+  const getMobileLinkClasses = (isActive: boolean) => {
+    if (isPill) {
+      return cn(
+        "flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium",
+        isActive
+          ? "text-white"
+          : "text-gray-300 hover:bg-white/10"
+      );
+    }
+    return cn(
+      "flex items-center gap-2 px-3 py-2 rounded text-sm font-medium",
+      isActive
+        ? "text-white"
+        : "text-gray-300 hover:text-white hover:bg-[#555555]"
+    );
+  };
+
+  const renderNavLinks = (mobile: boolean) =>
+    navigation.map((item) => {
+      const isActive = location.pathname === item.href ||
+        (item.href === '/' && location.pathname === '/') ||
+        (item.href !== '/' && location.pathname.startsWith(item.href));
+
+      return (
+        <Link
+          key={item.href}
+          to={item.href}
+          className={mobile ? getMobileLinkClasses(isActive) : getNavLinkClasses(isActive)}
+          style={isActive ? { backgroundColor: primaryColor } : undefined}
+          onClick={mobile ? () => setMobileMenuOpen(false) : undefined}
+        >
+          {item.icon}
+          {item.name}
+        </Link>
+      );
+    });
+
   return (
     <div className={cn("min-h-screen bg-gray-50", className)}>
       {/* Header */}
-      <header className="bg-black">
+      <header className={headerClassName ?? "bg-black"}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className={cn("flex justify-between items-center", headerHeight)}>
+          <div className={cn("flex items-center", headerHeight)}>
+            {/* Logo + version */}
             <div className="flex items-center">
               <img
                 src={logoSrc}
@@ -106,6 +177,18 @@ export function AppLayout({
                 <span className="ml-2 text-xs text-gray-400">v{appVersion}</span>
               )}
             </div>
+
+            {/* Inline nav links (desktop only) */}
+            {isInline && (
+              <div className="hidden md:flex items-center gap-1 ml-6">
+                {renderNavLinks(false)}
+              </div>
+            )}
+
+            {/* Spacer */}
+            <div className="flex-1" />
+
+            {/* Right-side controls */}
             <div className="flex items-center space-x-4">
               <ConnectionStatus
                 url={connectionStatusUrl}
@@ -133,68 +216,34 @@ export function AppLayout({
               </button>
             </div>
           </div>
-        </div>
-      </header>
 
-      {/* Navigation */}
-      <nav className="bg-[#444444]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Desktop navigation */}
-          <div className="hidden md:flex space-x-0">
-            {navigation.map((item) => {
-              const isActive = location.pathname === item.href || 
-                             (item.href === '/' && location.pathname === '/') ||
-                             (item.href !== '/' && location.pathname.startsWith(item.href));
-              
-              return (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  className={cn(
-                    "flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors",
-                    isActive 
-                      ? "text-white" 
-                      : "text-gray-300 hover:bg-[#555555] hover:text-white"
-                  )}
-                  style={isActive ? { backgroundColor: primaryColor } : undefined}
-                >
-                  {item.icon}
-                  {item.name}
-                </Link>
-              );
-            })}
-          </div>
-
-          {/* Mobile navigation */}
-          {mobileMenuOpen && (
+          {/* Mobile navigation (inline mode — renders inside header) */}
+          {isInline && mobileMenuOpen && (
             <div className="md:hidden py-2 space-y-1">
-              {navigation.map((item) => {
-                const isActive = location.pathname === item.href || 
-                               (item.href === '/' && location.pathname === '/') ||
-                               (item.href !== '/' && location.pathname.startsWith(item.href));
-                
-                return (
-                  <Link
-                    key={item.href}
-                    to={item.href}
-                    className={cn(
-                      "flex items-center gap-2 px-3 py-2 rounded text-sm font-medium",
-                      isActive 
-                        ? "text-white" 
-                        : "text-gray-300 hover:text-white hover:bg-[#555555]"
-                    )}
-                    style={isActive ? { backgroundColor: primaryColor } : undefined}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {item.icon}
-                    {item.name}
-                  </Link>
-                );
-              })}
+              {renderNavLinks(true)}
             </div>
           )}
         </div>
-      </nav>
+      </header>
+
+      {/* Navigation — separate bar (stacked mode only) */}
+      {!isInline && (
+        <nav className={navClassName ?? "bg-[#444444]"}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Desktop navigation */}
+            <div className={cn("hidden md:flex", isPill ? "gap-1 py-2" : "space-x-0")}>
+              {renderNavLinks(false)}
+            </div>
+
+            {/* Mobile navigation */}
+            {mobileMenuOpen && (
+              <div className="md:hidden py-2 space-y-1">
+                {renderNavLinks(true)}
+              </div>
+            )}
+          </div>
+        </nav>
+      )}
 
       {/* Main content */}
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
