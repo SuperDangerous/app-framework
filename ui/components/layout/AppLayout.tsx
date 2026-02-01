@@ -178,22 +178,34 @@ export function AppLayout({
               )}
             </div>
 
-            {/* Inline nav links (desktop only) */}
+            {/* Connection status — before spacer in inline mode, after in stacked */}
             {isInline && (
-              <div className="hidden md:flex items-center gap-1 ml-6">
-                {renderNavLinks(false)}
+              <div className="flex items-center ml-4">
+                <ConnectionStatus
+                  url={connectionStatusUrl}
+                  className="text-xs text-gray-400"
+                />
               </div>
             )}
 
             {/* Spacer */}
             <div className="flex-1" />
 
+            {/* Inline nav links (desktop only) — right-aligned */}
+            {isInline && (
+              <div className="hidden md:flex items-center gap-1 mr-4">
+                {renderNavLinks(false)}
+              </div>
+            )}
+
             {/* Right-side controls */}
             <div className="flex items-center space-x-4">
-              <ConnectionStatus
-                url={connectionStatusUrl}
-                className="text-xs text-gray-400"
-              />
+              {!isInline && (
+                <ConnectionStatus
+                  url={connectionStatusUrl}
+                  className="text-xs text-gray-400"
+                />
+              )}
               {showLogout && authenticated && (
                 <button
                   onClick={handleLogout}
