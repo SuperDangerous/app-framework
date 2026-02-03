@@ -241,7 +241,7 @@ export function DataTable<T>({
     <TooltipProvider>
       <>
         {/* Table with scroll container and border - supports both horizontal and vertical scroll with sticky header */}
-        <div className="overflow-auto border rounded-lg max-h-[calc(100vh-16rem)]">
+        <div className="overflow-auto border rounded-lg h-full">
           <Table
             style={getTableStyle()}
             className={cn('resizable-table sticky-actions-table', className)}
