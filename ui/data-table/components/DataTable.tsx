@@ -225,7 +225,7 @@ export function DataTable<T>({
           onClick={() => onSort(col.sortKey!)}
           className={cn(
             'flex items-center gap-1 hover:text-foreground transition-colors',
-            sortField === col.sortKey && 'text-primary font-medium'
+            sortField === col.sortKey && 'text-foreground font-medium'
           )}
         >
           {col.header}
@@ -295,6 +295,7 @@ export function DataTable<T>({
               {/* Actions column header */}
               {actionsColumn && (
                 <TableHead
+                  key="actions"
                   className="sticky right-0 z-20 bg-muted text-center relative before:absolute before:left-0 before:top-0 before:bottom-0 before:w-px before:bg-border"
                   style={{ width: actionsColumnWidth, minWidth: actionsColumnWidth, maxWidth: actionsColumnWidth }}
                 >
@@ -390,6 +391,7 @@ export function DataTable<T>({
                     {/* Actions cell */}
                     {actionsColumn && (
                       <TableCell
+                        key="actions"
                         className={cn(
                           'sticky right-0 z-10 text-center relative before:absolute before:left-0 before:top-0 before:bottom-0 before:w-px before:bg-border',
                           'bg-background group-hover:bg-muted',
