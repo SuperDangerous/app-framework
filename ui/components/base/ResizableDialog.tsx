@@ -12,6 +12,7 @@ interface ResizableDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title?: React.ReactNode;
+  titleExtra?: React.ReactNode;
   children: React.ReactNode | ((props: ResizableDialogRenderProps) => React.ReactNode);
   footer?: React.ReactNode;
   defaultWidth?: number;
@@ -36,6 +37,7 @@ export function ResizableDialog({
   open,
   onOpenChange,
   title,
+  titleExtra,
   children,
   footer,
   defaultWidth = 800,
@@ -274,13 +276,18 @@ export function ResizableDialog({
           {!isFullscreen && (
             <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
           )}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 group flex items-center gap-2">
             {title && (
-              <DialogHeader className="p-0 space-y-0">
+              <DialogHeader className="p-0 space-y-0 min-w-0 flex-1">
                 <DialogTitle className="text-base font-semibold leading-tight truncate">
                   {title}
                 </DialogTitle>
               </DialogHeader>
+            )}
+            {titleExtra && (
+              <div className="flex-shrink-0" onMouseDown={e => e.stopPropagation()}>
+                {titleExtra}
+              </div>
             )}
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">

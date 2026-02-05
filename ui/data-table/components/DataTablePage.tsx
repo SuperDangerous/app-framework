@@ -61,6 +61,8 @@ export interface DataTablePageProps {
   onClearFilters?: () => void;
   /** Pagination props from usePagination hook */
   pagination?: PaginationControlsProps;
+  /** Extra content to render next to the title (e.g. HelpTooltip) */
+  titleExtra?: React.ReactNode;
   /** Action buttons to show in the header */
   actions?: React.ReactNode;
   /** Content before the table (e.g., BatchActionsBar) */
@@ -78,6 +80,7 @@ export interface DataTablePageProps {
 export function DataTablePage({
   title,
   description,
+  titleExtra,
   search,
   onSearchChange,
   searchPlaceholder = 'Search...',
@@ -101,7 +104,10 @@ export function DataTablePage({
       <div className="data-table-page-header flex-shrink-0 space-y-4 pb-4">
         {/* Title */}
         <div>
-          <h1 className="text-3xl font-bold">{title}</h1>
+          <div className="group flex items-center gap-2">
+            <h1 className="text-3xl font-bold">{title}</h1>
+            {titleExtra}
+          </div>
           {description && (
             <p className="text-muted-foreground">{description}</p>
           )}

@@ -6,10 +6,11 @@ import { Label } from '../base/label';
 import { Switch } from '../base/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../base/select';
 import { Alert, AlertDescription } from '../base/alert';
-import { 
+import {
   Save, RefreshCw, Check, AlertCircle, Eye, EyeOff, Info, Undo, RotateCcw, LucideIcon
 } from 'lucide-react';
 import { cn } from '../../src/utils/cn';
+import { HelpTooltip } from '../base/HelpTooltip';
 
 // Extensible type definitions
 export interface SettingDefinition {
@@ -40,6 +41,8 @@ export interface SettingsCategory {
   label: string;
   icon?: LucideIcon | string | React.ReactNode;
   description?: string;
+  /** Inline help text shown via HelpTooltip next to category heading */
+  help?: string | React.ReactNode;
   /** Settings for form-based categories */
   settings?: SettingDefinition[];
   /** Custom component to render instead of settings form */
@@ -523,7 +526,15 @@ export function SettingsFramework({
             // Render custom component category
             <Card className="p-6 flex-1 min-h-0 flex flex-col overflow-hidden">
               <div className="mb-6 flex-shrink-0">
-                <h2 className="text-xl font-semibold">{activeSettings.label}</h2>
+                <div className="group flex items-center gap-2">
+                  <h2 className="text-xl font-semibold">{activeSettings.label}</h2>
+                  {activeSettings.help && (
+                    <HelpTooltip
+                      content={activeSettings.help}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    />
+                  )}
+                </div>
                 {activeSettings.description && (
                   <p className="text-sm text-muted-foreground mt-1">
                     {activeSettings.description}
@@ -608,10 +619,20 @@ export function SettingsFramework({
               ) : (
                 <>
                   <div className="mb-6">
-                    <h2 className="text-xl font-semibold">{activeSettings.label}</h2>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {activeSettings.description}
-                    </p>
+                    <div className="group flex items-center gap-2">
+                      <h2 className="text-xl font-semibold">{activeSettings.label}</h2>
+                      {activeSettings.help && (
+                        <HelpTooltip
+                          content={activeSettings.help}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        />
+                      )}
+                    </div>
+                    {activeSettings.description && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {activeSettings.description}
+                      </p>
+                    )}
                   </div>
                   
                   <div className="space-y-6">

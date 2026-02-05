@@ -89,8 +89,8 @@ export function ConnectionStatus({
           <button 
             className={cn(
               "inline-flex items-center gap-2 px-3 py-1 rounded-full",
-              "bg-gray-800/50 backdrop-blur-sm",
-              "hover:bg-gray-800/70 transition-all duration-200",
+              "bg-muted/70 backdrop-blur-sm",
+              "hover:bg-muted transition-all duration-200",
               "cursor-default select-none",
               className
             )}
