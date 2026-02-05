@@ -852,8 +852,8 @@ export function LogViewer({
               )}
             </Card>
           ) : (
-            <Card className="p-0 overflow-hidden">
-              <div className="px-4 py-3 border-b bg-gray-50 dark:bg-gray-900 flex items-center justify-between">
+            <Card className="p-0 overflow-hidden flex-1 flex flex-col min-h-0">
+              <div className="px-4 py-3 border-b bg-gray-50 dark:bg-gray-900 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-3">
                   {enableFilter && (
                     <div className="flex items-center gap-2">
@@ -919,7 +919,7 @@ export function LogViewer({
                 </div>
               </div>
 
-              <div className={cn('bg-white dark:bg-gray-900')} style={{ height }}>
+              <div className={cn('bg-white dark:bg-gray-900 flex-1 min-h-0')} style={{ height: height !== '100%' ? height : undefined }}>
                 {loading ? (
                   <div className="flex items-center justify-center h-full">
                     <div className="h-8 w-8 rounded-full border-2 border-gray-300 border-t-transparent animate-spin" />
@@ -944,7 +944,7 @@ export function LogViewer({
                 )}
               </div>
 
-              <div className="border-t bg-muted/50 px-4 py-2 flex justify-between items-center">
+              <div className="border-t bg-muted/50 px-4 py-2 flex justify-between items-center shrink-0">
                 <div className="text-sm text-muted-foreground">
                   {filteredLogs.length} {filteredLogs.length === 1 ? 'line' : 'lines'}
                 </div>
