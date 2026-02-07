@@ -37,6 +37,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [settings, hasChanges]);
   
   const refreshSettings = useCallback(async () => {

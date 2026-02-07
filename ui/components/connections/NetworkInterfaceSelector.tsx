@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from './Card';
+import { Card, CardContent, CardHeader, CardTitle } from '../base/card';
 
 export interface NetworkInterface {
   name: string;
@@ -26,7 +26,7 @@ export interface NetworkInterfaceSelectorProps {
 
 export function NetworkInterfaceSelector({
   interfaces: providedInterfaces,
-  selectedInterface,
+  selectedInterface: _selectedInterface,
   onInterfaceChange,
   showTestButton = true,
   apiUrl = '/api/network/interfaces'

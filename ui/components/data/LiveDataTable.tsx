@@ -4,8 +4,8 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Card } from './Card';
-import { ActivityLED, type LEDStatus } from './ActivityLED';
+import { Card } from '../base/card';
+import { ActivityLED, type LEDStatus } from '../activity/ActivityLED';
 import { SparklineChart } from './SparklineChart';
 import { cn } from '../../src/utils/cn';
 import { Clock, Activity } from 'lucide-react';

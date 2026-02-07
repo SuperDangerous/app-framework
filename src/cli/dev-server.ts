@@ -748,7 +748,7 @@ class DevServerOrchestrator {
 
   async start() {
     logger.info(
-      chalk.cyan(`\nStarting ${this.config.appName} development server...\n`),
+      chalk.cyan(`Starting ${this.config.appName} development server...`),
     );
 
     // Check if backend port is available
@@ -773,7 +773,7 @@ class DevServerOrchestrator {
 
     // Handle graceful shutdown
     process.on("SIGINT", () => {
-      logger.info(chalk.yellow("\n\nShutting down..."));
+      logger.info(chalk.yellow("Shutting down..."));
       this.cleanup();
       // Force exit after a delay if processes don't terminate
       setTimeout(() => process.exit(0), 1500);

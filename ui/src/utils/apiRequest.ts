@@ -34,8 +34,9 @@ export class ApiError extends Error {
  */
 function getApiBaseUrl(): string {
   // Check for environment variable
-  if (import.meta.env?.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
+  const env = (import.meta as unknown as { env?: Record<string, string> }).env;
+  if (env?.VITE_API_URL) {
+    return env.VITE_API_URL;
   }
   
   // Default to relative URL for same-origin requests

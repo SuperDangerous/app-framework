@@ -4,9 +4,9 @@
  */
 
 
-import { Card } from './Card';
+import { Card } from '../base/card';
 import { SparklineChart } from './SparklineChart';
-import { ActivityLED, type LEDStatus } from './ActivityLED';
+import { ActivityLED, type LEDStatus } from '../activity/ActivityLED';
 import { cn } from '../../src/utils/cn';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 

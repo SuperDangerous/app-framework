@@ -4,6 +4,7 @@
  */
 
 
+import React from 'react';
 import { cn } from '../utils/cn';
 
 // Button Component
@@ -42,8 +43,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 // Select Components
-export const Select: React.FC<{ children: React.ReactNode; value?: string; onValueChange?: (value: string) => void }> = 
-  ({ children, value, onValueChange }) => {
+export const Select: React.FC<{ children: React.ReactNode; value?: string; onValueChange?: (value: string) => void }> =
+  ({ children, value: _value, onValueChange: _onValueChange }) => {
     return <div className="relative">{children}</div>;
   };
 

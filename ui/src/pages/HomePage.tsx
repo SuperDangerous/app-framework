@@ -3,7 +3,6 @@
  * Placeholder home page for the application
  */
 
-import React from 'react';
 import { Card, CardHeader, CardContent, CardTitle } from '../../components/base/card';
 
 export default function HomePage() {
@@ -110,7 +109,7 @@ export default function HomePage() {
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">Environment</p>
             <p className="text-lg font-semibold text-gray-900 dark:text-white">
-              {import.meta.env.MODE || 'development'}
+              {(import.meta as unknown as { env: Record<string, string> }).env.MODE || 'development'}
             </p>
           </div>
         </div>

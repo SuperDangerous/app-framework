@@ -4,7 +4,7 @@
  */
 
 import { create } from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
+import { devtools, persist, subscribeWithSelector } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 
 /**
@@ -120,14 +120,14 @@ export const useDeviceStore = create<DeviceState>()(
         }),
         
         updateDevice: (id, updates) => set((state) => {
-          const device = state.devices.find(d => d.id === id);
+          const device = state.devices.find((d: Device) => d.id === id);
           if (device) {
             Object.assign(device, updates);
           }
         }),
         
         removeDevice: (id) => set((state) => {
-          state.devices = state.devices.filter(d => d.id !== id);
+          state.devices = state.devices.filter((d: Device) => d.id !== id);
           if (state.selectedDeviceId === id) {
             state.selectedDeviceId = null;
           }
@@ -260,6 +260,7 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>()(
+  subscribeWithSelector(
   devtools(
     persist(
       (set, get) => ({
@@ -324,6 +325,7 @@ export const useAuthStore = create<AuthState>()(
       }
     ),
     { name: 'AuthStore' }
+  )
   )
 );
 

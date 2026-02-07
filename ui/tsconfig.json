@@ -40,6 +40,10 @@
     "dist",
     "build",
     "*.config.ts",
-    "*.config.js"
+    "*.config.js",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx"
   ]
 }

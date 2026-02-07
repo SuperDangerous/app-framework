@@ -29,7 +29,7 @@ export function SparklineChart({
   className,
   animate = true
 }: SparklineChartProps) {
-  const { path, dots, bounds } = useMemo(() => {
+  const { path, dots } = useMemo(() => {
     if (!data || data.length === 0) {
       return { path: '', dots: [], bounds: { min: 0, max: 1 } };
     }
@@ -55,7 +55,7 @@ export function SparklineChart({
 
     // Create fill path if needed
     const fillPath = fillColor
-      ? `${pathData} L ${points[points.length - 1].x},${height} L ${points[0].x},${height} Z`
+      ? `${pathData} L ${points[points.length - 1]!.x},${height} L ${points[0]!.x},${height} Z`
       : '';
 
     return {
