@@ -1,6 +1,6 @@
 {
   "name": "@superdangerous/app-framework",
-  "version": "4.16.35",
+  "version": "4.16.36",
   "description": "Opinionated TypeScript framework for structured vibecoding - building internal web and desktop apps with batteries included",
   "type": "module",
   "main": "dist/index.js",
@@ -41,8 +41,9 @@
       "require": "./ui/dist/index.js"
     },
     "./data-table": {
-      "types": "./ui/data-table/index.ts",
-      "import": "./ui/data-table/index.ts"
+      "types": "./ui/dist/data-table.d.ts",
+      "import": "./ui/dist/data-table.mjs",
+      "require": "./ui/dist/data-table.js"
     },
     "./ui/utils": {
       "types": "./dist/ui/utils/index.d.ts",
@@ -153,7 +154,6 @@
     "dist/",
     "src/",
     "ui/dist/",
-    "ui/data-table/",
     "ui/styles/",
     "README.md",
     "LICENSE"
