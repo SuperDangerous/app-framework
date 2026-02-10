@@ -57,6 +57,8 @@ export { NetworkInterfaceSelect } from '../components/connections/NetworkInterfa
 export { MarkdownViewer, MarkdownCard, MarkdownScrollArea } from '../components/base/MarkdownViewer';
 export { TruncatedText } from '../components/base/TruncatedText';
 export { ColorPalette, TAG_COLORS, getRandomTagColor, getNextTagColor, getNextAvailableColor } from '../components/base/ColorPalette';
+export { PathTypeahead } from '../components/base/PathTypeahead';
+export type { PathTypeaheadProps } from '../components/base/PathTypeahead';
 export { ConfirmDialog, useConfirmDialog } from '../components/base/ConfirmDialog';
 export type { ConfirmDialogVariant } from '../components/base/ConfirmDialog';
 export { ResizableDialog } from '../components/base/ResizableDialog';

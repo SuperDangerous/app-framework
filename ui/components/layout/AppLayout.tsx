@@ -147,7 +147,7 @@ export function AppLayout({
     });
 
   return (
-    <div className={cn("min-h-screen bg-gray-50", className)}>
+    <div className={cn("min-h-screen bg-background", className)}>
       {/* Header */}
       <header className={headerClassName ?? "bg-black"}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -310,7 +310,7 @@ export function SidebarLayout({
   };
 
   return (
-    <div className={cn("h-screen flex flex-col bg-gray-50", className)}>
+    <div className={cn("h-screen flex flex-col bg-background", className)}>
       {/* Header */}
       <header className="bg-black">
         <div className="px-4 sm:px-6 lg:px-8">
