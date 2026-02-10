@@ -6,8 +6,13 @@ on:
   pull_request:
     branches: [ main ]
 
+# Prevent overlapping runs on the same ref (main/develop/PR), which can race in release.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
-  NODE_VERSION: '18'
+  NODE_VERSION: '20'
 
 jobs:
   # Single setup job that other jobs depend on
@@ -124,8 +129,7 @@ jobs:
 
     - name: Run tests
       run: |
-        npm run test:unit
-        npm run test:integration
+        npm run test
       
     - name: Generate coverage report
       if: matrix.os == 'ubuntu-latest' && matrix.node-version == env.NODE_VERSION
@@ -377,17 +381,40 @@ jobs:
       run: |
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
+
+    - name: Ensure release run is current
+      id: release_guard
+      run: |
+        echo "skip_release=false" >> $GITHUB_OUTPUT
+        git fetch origin main --depth=1
+        if [ "$(git rev-parse origin/main)" != "${GITHUB_SHA}" ]; then
+          echo "::warning::Main advanced past this run (${GITHUB_SHA}); skipping release."
+          echo "skip_release=true" >> $GITHUB_OUTPUT
+        fi
         
     - name: Bump version and commit
       id: bump
+      if: steps.release_guard.outputs.skip_release != 'true'
       run: |
         NEW_VERSION=$(npm version ${{ steps.version.outputs.bump }} --no-git-tag-version)
         echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+        echo "pushed=false" >> $GITHUB_OUTPUT
         git add package.json package-lock.json
+
+        if git diff --cached --quiet; then
+          echo "::warning::No version files changed; skipping release."
+          exit 0
+        fi
+
         git commit -m "chore: bump version to ${NEW_VERSION} [skip ci]"
-        git push
+        if git push origin HEAD:main; then
+          echo "pushed=true" >> $GITHUB_OUTPUT
+        else
+          echo "::warning::Version bump push rejected (likely a newer commit landed). Skipping release."
+        fi
         
     - name: Create GitHub release
+      if: steps.release_guard.outputs.skip_release != 'true' && steps.bump.outputs.pushed == 'true'
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ steps.bump.outputs.new_version }}
@@ -403,4 +430,3 @@ jobs:
         files: '*.tgz'
         draft: false
         prerelease: false
-
