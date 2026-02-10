@@ -29,7 +29,7 @@ export function ConnectionStatus({
     let mounted = true;
     
     // Determine the API URL - use empty string for relative URLs in dev
-    const apiUrl = url || '';
+    const apiUrl = (url || '').replace(/\/api\/health\/?$/, '');
     
     // Check connection by testing the API health endpoint
     const checkConnection = async () => {

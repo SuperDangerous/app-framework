@@ -263,7 +263,7 @@ export function DataTable<T>({
                           if (el) el.indeterminate = isSomeSelected;
                         }}
                         onChange={(e) => e.target.checked ? selectAll() : clearSelection()}
-                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
                         title={isAllSelected ? 'Deselect all' : 'Select all visible'}
                       />
                     </TableHead>
@@ -358,7 +358,7 @@ export function DataTable<T>({
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => toggleSelection(rowId)}
-                              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                              className="h-4 w-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
                             />
                           </TableCell>
                         );

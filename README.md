@@ -54,7 +54,8 @@ npm run typecheck
 
 #### Test Infrastructure
 
-- Jest with TypeScript support
+- Vitest with TypeScript support (framework core)
+- Jest with TypeScript support (UI package tests under `ui/`)
 - Built-in TestServer class for app testing
 - Mock implementations for all services
 - Async operation handling

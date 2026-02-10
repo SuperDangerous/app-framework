@@ -50,13 +50,13 @@ export function UpdateNotification({
       if (response.ok) {
         const data = await response.json();
         setUpdateInfo(data);
-        
-        // Reset dismissed state if new update available
-        if (data.updateAvailable && isDismissed) {
+
+        // Persist dismissal per version; only hide if the same version was dismissed.
+        if (data.updateAvailable && data.latestRelease?.version) {
           const dismissedVersion = localStorage.getItem('dismissedUpdateVersion');
-          if (dismissedVersion !== data.latestRelease?.version) {
-            setIsDismissed(false);
-          }
+          setIsDismissed(dismissedVersion === data.latestRelease.version);
+        } else {
+          setIsDismissed(false);
         }
       }
     } catch (error) {
@@ -136,6 +136,7 @@ export function UpdateNotification({
             <Button
               size="sm"
               variant="ghost"
+              aria-label="Open release page"
               onClick={() => window.open(updateInfo.latestRelease?.url, '_blank')}
             >
               <ExternalLink className="h-3 w-3" />
@@ -146,6 +147,7 @@ export function UpdateNotification({
         <Button
           size="sm"
           variant="ghost"
+          aria-label="Dismiss update"
           className="absolute top-2 right-2 h-6 w-6 p-0"
           onClick={handleDismiss}
         >

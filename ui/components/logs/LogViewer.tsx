@@ -122,9 +122,12 @@ const defaultLevelBadgeColors: Record<string, string> = {
   verbose: 'bg-gray-400 text-white'
 };
 
+const EMPTY_LOGS: LogEntry[] = [];
+const EMPTY_LOG_FILES: LogFile[] = [];
+
 export function LogViewer({
-  logs: externalLogs = [],
-  logFiles: externalLogFiles = [],
+  logs: externalLogs = EMPTY_LOGS,
+  logFiles: externalLogFiles = EMPTY_LOG_FILES,
   onFetchLogs,
   onFetchArchives,
   onClearLogs,

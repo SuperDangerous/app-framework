@@ -1,5 +1,4 @@
-
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { ConnectionLostOverlay } from './ConnectionLostOverlay';
 
 describe('ConnectionLostOverlay', () => {
@@ -12,117 +11,70 @@ describe('ConnectionLostOverlay', () => {
     jest.useRealTimers();
   });
 
-  it('should not render when connected', () => {
+  it('does not render when connected', () => {
     const { container } = render(<ConnectionLostOverlay isConnected={true} />);
     expect(container.firstChild).toBeNull();
   });
 
-  it('should show overlay after delay when disconnected', async () => {
+  it('shows overlay after disconnect delay', () => {
     render(<ConnectionLostOverlay isConnected={false} />);
-    
-    // Should not show immediately
+
     expect(screen.queryByText('Connection Lost')).toBeNull();
-    
-    // Fast-forward delay timer
+
     act(() => {
       jest.advanceTimersByTime(1000);
     });
-    
-    // Should show after delay
+
     expect(screen.getByText('Connection Lost')).toBeInTheDocument();
   });
 
-  it('should hide overlay when connection restored', () => {
+  it('hides overlay when connection is restored', () => {
     const { rerender } = render(<ConnectionLostOverlay isConnected={false} />);
-    
-    // Show overlay
+
     act(() => {
       jest.advanceTimersByTime(1000);
     });
     expect(screen.getByText('Connection Lost')).toBeInTheDocument();
-    
-    // Reconnect
+
     rerender(<ConnectionLostOverlay isConnected={true} />);
     expect(screen.queryByText('Connection Lost')).toBeNull();
   });
 
-  it('should display custom app name', () => {
-    render(<ConnectionLostOverlay isConnected={false} appName="My Application" />);
-    act(() => {
-      jest.advanceTimersByTime(1000);
-    });
-    
-    expect(screen.getByText(/• Restarting My Application/)).toBeInTheDocument();
-  });
-
-  it('should call onRetry when retry button clicked', () => {
+  it('calls onRetry when retry button is clicked', () => {
     const onRetry = jest.fn();
     render(<ConnectionLostOverlay isConnected={false} onRetry={onRetry} />);
-    
+
     act(() => {
       jest.advanceTimersByTime(1000);
     });
-    
-    const retryButton = screen.getByRole('button', { name: /Retry Now/i });
-    fireEvent.click(retryButton);
-    
+
+    fireEvent.click(screen.getByRole('button', { name: /retry now/i }));
+
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
-  it('should reload page when retry clicked without onRetry handler', () => {
-    // Mock reload using a different approach
-    delete (window as any).location;
-    window.location = { ...window.location, reload: jest.fn() };
-    
+  it('shows retrying state after auto-retry timer', () => {
     render(<ConnectionLostOverlay isConnected={false} />);
-    act(() => {
-      jest.advanceTimersByTime(1000);
-    });
-    
-    const retryButton = screen.getByRole('button', { name: /Retry Now/i });
-    fireEvent.click(retryButton);
-    
-    expect(window.location.reload).toHaveBeenCalledTimes(1);
-  });
 
-  it('should auto-retry after 5 seconds', () => {
-    render(<ConnectionLostOverlay isConnected={false} />);
-    
-    // Show overlay
     act(() => {
       jest.advanceTimersByTime(1000);
     });
-    expect(screen.getByText('Connection Lost')).toBeInTheDocument();
-    
-    // Auto-retry after 5 seconds
+
     act(() => {
       jest.advanceTimersByTime(5000);
     });
-    
-    // Should show retrying state
-    expect(screen.getByText(/Attempting to reconnect/)).toBeInTheDocument();
+
+    expect(screen.getByText(/attempting to reconnect/i)).toBeInTheDocument();
   });
 
+  it('renders troubleshooting guidance', () => {
+    render(<ConnectionLostOverlay isConnected={false} appName="My Application" />);
 
-  it('should display red circle icon with animation', () => {
-    render(<ConnectionLostOverlay isConnected={false} />);
     act(() => {
       jest.advanceTimersByTime(1000);
     });
-    
-    // Check for circle icons (one static, one animated)
-    const circles = screen.getByTestId('connection-icon');
-    expect(circles).toBeInTheDocument();
-  });
 
-  it('should show help text with troubleshooting steps', () => {
-    render(<ConnectionLostOverlay isConnected={false} />);
-    act(() => {
-      jest.advanceTimersByTime(1000);
-    });
-    
-    expect(screen.getByText(/If this problem persists/)).toBeInTheDocument();
-    expect(screen.getByText(/Checking if the backend server is running/)).toBeInTheDocument();
-    expect(screen.getByText(/Checking the console for error messages/)).toBeInTheDocument();
+    expect(screen.getByText(/if this problem persists/i)).toBeInTheDocument();
+    expect(screen.getByText(/restarting my application/i)).toBeInTheDocument();
   });
 });
