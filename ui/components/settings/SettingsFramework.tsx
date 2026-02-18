@@ -541,7 +541,7 @@ export function SettingsFramework({
                   </p>
                 )}
               </div>
-              <div className="flex-1 min-h-0">
+              <div className="flex-1 min-h-0 overflow-y-auto">
                 <activeSettings.component category={activeSettings} />
               </div>
             </Card>
