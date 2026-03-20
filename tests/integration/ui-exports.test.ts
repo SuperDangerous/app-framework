@@ -55,6 +55,7 @@ describe('UI Component Exports', () => {
     
     // Framework-specific components
     const frameworkComponents = [
+      'AppFooter',
       'LogViewer',
       'LogStats',
       'SettingsFramework',
@@ -104,6 +105,7 @@ describe('UI Component Exports', () => {
     // Verify key exports are in the types
     expect(typesContent).toMatch(/export \{[^}]*Button/);
     expect(typesContent).toMatch(/export \{[^}]*Card/);
+    expect(typesContent).toMatch(/export \{[^}]*AppFooter/);
     expect(typesContent).toMatch(/export \{[^}]*LogViewer/);
     expect(typesContent).toMatch(/export \{[^}]*SettingsFramework/);
   });

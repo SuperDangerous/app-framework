@@ -81,6 +81,8 @@ export type { UseFormStateOptions, FormState } from './hooks/useFormState';
 // Layout components
 export { AppLayout, SidebarLayout } from '../components/layout/AppLayout';
 export type { AppLayoutProps, SidebarLayoutProps, NavItem } from '../components/layout/AppLayout';
+export { AppFooter } from '../components/layout/AppFooter';
+export type { AppFooterProps, AppFooterStatusTone } from '../components/layout/AppFooter';
 
 // Sidebar Layout (BMS-style)
 export { SidebarAppLayout } from '../components/layout/SidebarAppLayout';

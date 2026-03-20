@@ -28,9 +28,9 @@ export interface AppLayoutProps {
   connectionStatusUrl?: string;
   className?: string;
   primaryColor?: string;
-  /** 'stacked' = current two-row layout (default), 'inline' = nav beside logo in one row */
+  /** 'inline' is the framework default; 'stacked' remains for legacy layouts */
   navLayout?: 'stacked' | 'inline';
-  /** 'bar' = current full-width bg block (default), 'pill' = rounded pill highlight */
+  /** 'pill' is the framework default; 'bar' remains for legacy layouts */
   navActiveStyle?: 'bar' | 'pill';
   /** Custom class for the <header> element (replaces default 'bg-black') */
   headerClassName?: string;
@@ -57,8 +57,8 @@ export function AppLayout({
   connectionStatusUrl,
   className,
   primaryColor = '#3b82f6',
-  navLayout = 'stacked',
-  navActiveStyle = 'bar',
+  navLayout = 'inline',
+  navActiveStyle = 'pill',
   headerClassName,
   navClassName
 }: AppLayoutProps) {
@@ -100,7 +100,7 @@ export function AppLayout({
           : "text-gray-300 hover:bg-white/10"
       );
     }
-    // bar style (default)
+    // Legacy bar style for older apps that still opt into the stacked nav.
     return cn(
       "flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors",
       isActive
