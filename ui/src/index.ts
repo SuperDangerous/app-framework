@@ -66,6 +66,8 @@ export { ContextMenu, ContextMenuItem, ContextMenuSeparator, ContextMenuSubmenu 
 export type { ContextMenuProps, ContextMenuPosition, ContextMenuItemProps, ContextMenuSubmenuProps } from '../components/base/context-menu';
 export { CodeViewer, CodeSnippet } from '../components/base/CodeViewer';
 export type { CodeViewerProps } from '../components/base/CodeViewer';
+export { AppCommandPalette } from '../components/base/AppCommandPalette';
+export type { AppCommandPaletteProps, AppCommandPaletteItem } from '../components/base/AppCommandPalette';
 
 // Utilities
 export * from './utils/dateFormat';
