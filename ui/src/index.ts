@@ -50,6 +50,8 @@ export { ConnectionIndicator } from '../components/connections/ConnectionIndicat
 export { DeviceIcon } from '../components/base/DeviceIcon';
 export { DogEarBadge } from '../components/base/DogEarBadge';
 export { EmptyState } from '../components/base/EmptyState';
+export { AppCrashFallback } from '../components/base/AppCrashFallback';
+export type { AppCrashFallbackProps } from '../components/base/AppCrashFallback';
 export * from '../components/base/DomainEmptyStates';
 export { LoadingState, CardSkeleton, TableSkeleton } from '../components/base/LoadingState';
 export { HelpTooltip } from '../components/base/HelpTooltip';
@@ -75,6 +77,7 @@ export * from './utils/numberFormat';
 export * from './utils/tagColors';
 export * from './utils/time';
 export * from './utils/apiReadiness';
+export * from './utils/browserLogger';
 
 // Hooks
 export { useFormState } from './hooks/useFormState';
