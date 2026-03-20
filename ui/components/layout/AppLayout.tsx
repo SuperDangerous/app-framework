@@ -15,6 +15,7 @@ export interface AppLayoutProps {
   appVersion?: string;
   navigation: NavItem[];
   children: React.ReactNode;
+  headerActions?: React.ReactNode;
   logoSrc?: string;
   /** Custom CSS class for logo (default: "h-8 w-auto") */
   logoClassName?: string;
@@ -36,6 +37,8 @@ export interface AppLayoutProps {
   headerClassName?: string;
   /** Custom class for the <nav> element (replaces default 'bg-[#444444]'); unused in inline mode */
   navClassName?: string;
+  /** Custom class for the header actions slot */
+  headerActionsClassName?: string;
 }
 
 /**
@@ -47,6 +50,7 @@ export function AppLayout({
   appVersion,
   navigation,
   children,
+  headerActions,
   logoSrc = '/assets/logo.png',
   logoClassName = 'h-8 w-auto',
   logoOffset,
@@ -60,7 +64,8 @@ export function AppLayout({
   navLayout = 'inline',
   navActiveStyle = 'pill',
   headerClassName,
-  navClassName
+  navClassName,
+  headerActionsClassName,
 }: AppLayoutProps) {
   // Safe useLocation - returns a default if not in Router context
   let location = { pathname: '/' };
@@ -199,7 +204,11 @@ export function AppLayout({
             )}
 
             {/* Right-side controls */}
-            <div className="flex items-center space-x-4">
+            <div
+              className={cn("flex items-center space-x-4", headerActionsClassName)}
+              data-app-layout-header-actions
+            >
+              {headerActions}
               {!isInline && (
                 <ConnectionStatus
                   url={connectionStatusUrl}
