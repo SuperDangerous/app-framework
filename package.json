@@ -1,7 +1,7 @@
 {
   "name": "@superdangerous/app-framework",
-  "version": "4.17.4",
-  "description": "Opinionated TypeScript framework for structured vibecoding - building internal web and desktop apps with batteries included",
+  "version": "4.17.5",
+  "description": "Opinionated TypeScript framework for vibecoding enterprise web and desktop apps — 20+ UI components, WebSocket, Electron, and production services pre-wired",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
