@@ -1,6 +1,6 @@
 {
   "name": "@superdangerous/app-framework",
-  "version": "4.17.8",
+  "version": "4.17.10",
   "description": "Opinionated TypeScript framework for vibecoding enterprise web and desktop apps — 20+ UI components, WebSocket, Electron, and production services pre-wired",
   "type": "module",
   "main": "dist/index.js",
@@ -59,6 +59,7 @@
     "clean": "rm -rf dist",
     "prebuild": "npm run clean",
     "postbuild": "node ./scripts/postbuild-ensure-cli-executables.cjs",
+    "prepack": "npm run build:all",
     "test": "npm run test:unit && npm run test:integration && npm run test:ui",
     "test:unit": "vitest run --config vitest.config.ts tests/unit",
     "test:integration": "vitest run --config tests/vitest.integration.config.ts tests/integration",
