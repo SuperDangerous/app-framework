@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Button, type ButtonProps } from '../base/button';
 import { cn } from '../../src/utils/cn';
 
 export interface SettingsPanelProps {
@@ -24,6 +25,30 @@ export interface SettingsDetailListProps {
   className?: string;
   itemClassName?: string;
 }
+
+export type SettingsNoticeTone = 'neutral' | 'info' | 'warning' | 'danger' | 'success';
+
+export interface SettingsNoticePanelProps extends SettingsPanelProps {
+  tone?: SettingsNoticeTone;
+}
+
+export interface SettingsActionPanelProps extends Omit<SettingsPanelProps, 'actions'> {
+  action?: ReactNode;
+  actionLabel?: ReactNode;
+  onAction?: ButtonProps['onClick'];
+  actionIcon?: ReactNode;
+  actionVariant?: ButtonProps['variant'];
+  actionDisabled?: boolean;
+  actionButtonProps?: Omit<ButtonProps, 'children' | 'variant' | 'onClick'>;
+}
+
+const noticeToneClasses: Record<SettingsNoticeTone, string> = {
+  neutral: 'bg-muted/50',
+  info: 'border border-border/60 bg-background/70',
+  warning: 'border border-amber-500/30 bg-amber-500/10',
+  danger: 'border border-destructive/30 bg-destructive/10',
+  success: 'border border-emerald-500/25 bg-emerald-500/10',
+};
 
 export function SettingsPanel({
   title,
@@ -77,4 +102,45 @@ export function SettingsDetailList({ items, className, itemClassName }: Settings
       ))}
     </dl>
   );
+}
+
+export function SettingsNoticePanel({
+  tone = 'neutral',
+  className,
+  ...props
+}: SettingsNoticePanelProps) {
+  return (
+    <SettingsPanel
+      {...props}
+      className={cn(noticeToneClasses[tone], className)}
+    />
+  );
+}
+
+export function SettingsActionPanel({
+  action,
+  actionLabel,
+  onAction,
+  actionIcon,
+  actionVariant = 'outline',
+  actionDisabled = false,
+  actionButtonProps,
+  ...props
+}: SettingsActionPanelProps) {
+  const actions = action ?? (
+    actionLabel ? (
+      <Button
+        type="button"
+        variant={actionVariant}
+        onClick={onAction}
+        disabled={actionDisabled}
+        {...actionButtonProps}
+      >
+        {actionIcon}
+        {actionLabel}
+      </Button>
+    ) : null
+  );
+
+  return <SettingsPanel {...props} actions={actions} />;
 }
