@@ -150,11 +150,13 @@ export { SettingsFramework } from '../components/settings/SettingsFramework';
 export type { SettingsFrameworkProps, SettingsCategory, SettingDefinition, SettingsCategoryComponentProps, CustomFieldProps } from '../components/settings/SettingsFramework';
 export { LogsSettings, LiveLogsSettings, LogArchivesSettings } from '../components/settings/LogsSettings';
 export type { LogsSettingsProps, LiveLogsSettingsProps, LogArchivesSettingsProps } from '../components/settings/LogsSettings';
-export { SettingsPanel, SettingsDetailList, SettingsNoticePanel, SettingsActionPanel } from '../components/settings/SettingsPanels';
+export { SettingsPanel, SettingsDetailList, SettingsShortcutGrid, SettingsNoticePanel, SettingsActionPanel } from '../components/settings/SettingsPanels';
 export type {
   SettingsPanelProps,
   SettingsDetailListItem,
   SettingsDetailListProps,
+  SettingsShortcutItem,
+  SettingsShortcutGridProps,
   SettingsNoticePanelProps,
   SettingsNoticeTone,
   SettingsActionPanelProps,

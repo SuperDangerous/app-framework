@@ -26,6 +26,25 @@ export interface SettingsDetailListProps {
   itemClassName?: string;
 }
 
+export interface SettingsShortcutItem {
+  key?: string;
+  title: ReactNode;
+  description?: ReactNode;
+  icon?: ReactNode;
+  meta?: ReactNode;
+  onSelect?: () => void;
+  href?: string;
+  target?: string;
+  rel?: string;
+  disabled?: boolean;
+}
+
+export interface SettingsShortcutGridProps {
+  items: SettingsShortcutItem[];
+  className?: string;
+  itemClassName?: string;
+}
+
 export type SettingsNoticeTone = 'neutral' | 'info' | 'warning' | 'danger' | 'success';
 
 export interface SettingsNoticePanelProps extends SettingsPanelProps {
@@ -101,6 +120,69 @@ export function SettingsDetailList({ items, className, itemClassName }: Settings
         </div>
       ))}
     </dl>
+  );
+}
+
+export function SettingsShortcutGrid({ items, className, itemClassName }: SettingsShortcutGridProps) {
+  return (
+    <div className={cn('grid gap-3 md:grid-cols-2', className)}>
+      {items.map((item, index) => {
+        const content = (
+          <div className="flex items-start gap-3">
+            {item.icon ? <span className="mt-0.5 text-muted-foreground">{item.icon}</span> : null}
+            <div className="min-w-0 space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-semibold text-foreground">{item.title}</p>
+                {item.meta ? <div className="text-xs text-muted-foreground">{item.meta}</div> : null}
+              </div>
+              {item.description ? <p className="text-sm text-muted-foreground">{item.description}</p> : null}
+            </div>
+          </div>
+        );
+
+        const sharedClassName = cn(
+          'rounded-lg border border-border/60 bg-background/70 p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+          item.disabled ? 'cursor-not-allowed opacity-60' : 'hover:bg-accent/40',
+        );
+
+        if (item.href && !item.disabled) {
+          return (
+            <a
+              key={item.key || `${index}-${String(item.title)}`}
+              href={item.href}
+              target={item.target}
+              rel={item.rel}
+              className={cn(sharedClassName, itemClassName)}
+            >
+              {content}
+            </a>
+          );
+        }
+
+        if (item.onSelect) {
+          return (
+            <button
+              key={item.key || `${index}-${String(item.title)}`}
+              type="button"
+              onClick={item.onSelect}
+              disabled={item.disabled}
+              className={cn(sharedClassName, itemClassName)}
+            >
+              {content}
+            </button>
+          );
+        }
+
+        return (
+          <div
+            key={item.key || `${index}-${String(item.title)}`}
+            className={cn(sharedClassName, itemClassName)}
+          >
+            {content}
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
