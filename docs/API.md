@@ -1208,14 +1208,89 @@ import {
 #### SettingsFramework
 
 ```tsx
+import {
+  SettingsFramework,
+  LiveLogsSettings,
+  LogArchivesSettings,
+  apiRequest,
+  type SettingsCategory,
+} from '@superdangerous/app-framework/ui';
+import { Archive, BookOpen, Terminal } from 'lucide-react';
+
+const settingsCategories: SettingsCategory[] = [
+  {
+    id: 'application',
+    label: 'Application',
+    description: 'App name, theme, and runtime defaults',
+    settings: [
+      {
+        key: 'app.name',
+        label: 'Application Name',
+        type: 'string',
+        defaultValue: 'My App',
+      },
+      {
+        key: 'network.apiPort',
+        label: 'API Port',
+        type: 'number',
+        defaultValue: 7500,
+        requiresRestart: true,
+      },
+    ],
+  },
+  {
+    id: 'liveLogs',
+    label: 'Live Logs',
+    icon: Terminal,
+    component: () => (
+      <LiveLogsSettings
+        category={{ id: 'liveLogs', label: 'Live Logs' }}
+        onFetchLogs={() => apiRequest('/api/logs/entries')}
+        onClearLogs={() => apiRequest('/api/logs/clear', { method: 'POST' })}
+      />
+    ),
+  },
+  {
+    id: 'logArchives',
+    label: 'Log Archives',
+    icon: Archive,
+    component: () => (
+      <LogArchivesSettings
+        category={{ id: 'logArchives', label: 'Log Archives' }}
+        onFetchArchives={() => apiRequest('/api/logs/archives')}
+      />
+    ),
+  },
+  {
+    id: 'help',
+    label: 'Help',
+    icon: BookOpen,
+    component: HelpSettings,
+  },
+];
+
 <SettingsFramework
   categories={settingsCategories}
-  values={currentValues}
-  onChange={handleChange}
-  onSave={handleSave}
-  onCancel={handleCancel}
+  onLoad={() => apiRequest('/api/settings')}
+  onSave={(values) =>
+    apiRequest('/api/settings', {
+      method: 'PUT',
+      body: JSON.stringify(values),
+    })
+  }
+  onRestartRequired={(keys) => {
+    console.info('Restart required for:', keys);
+  }}
 />
 ```
+
+Recommended portfolio pattern:
+
+- use `SettingsFramework`, not the legacy `SettingsPage` wrapper
+- keep reusable settings definitions in dedicated config files, not inline page-only arrays
+- start with appearance or application categories, then domain settings, then logs and help
+- use `onRestartRequired` for restart-sensitive keys instead of app-specific banners
+- reuse `LiveLogsSettings` and `LogArchivesSettings` rather than rebuilding log panels
 
 #### LogViewer
 
