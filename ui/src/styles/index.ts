@@ -2,7 +2,7 @@
  * SuperDangerous UI Framework - Shared Style Constants
  * Reusable Tailwind class combinations for consistency
  * 
- * @module @superdangerous/ui-framework/styles
+ * @module @superdangerous/app-framework/ui
  */
 
 export const cardStyles = {

@@ -1,7 +1,8 @@
 {
-  "name": "@superdangerous/ui-framework",
-  "version": "4.10.3",
-  "description": "Opinionated UI component library for SuperDangerous internal applications",
+  "name": "@superdangerous/app-framework-ui-internal",
+  "version": "4.17.12",
+  "private": true,
+  "description": "Internal UI workspace for @superdangerous/app-framework",
   "main": "dist/index.mjs",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",

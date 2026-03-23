@@ -1,7 +1,7 @@
 /**
  * SuperDangerous UI Framework - Centralized Theme Configuration
  * 
- * @module @superdangerous/ui-framework/theme
+ * @module @superdangerous/app-framework/ui
  */
 
 export const theme = {

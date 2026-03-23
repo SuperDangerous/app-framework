@@ -2,7 +2,7 @@
  * SuperDangerous UI Framework - Centralized Icon Exports
  * Using Lucide React icons with outlined style as standard
  * 
- * @module @superdangerous/ui-framework/icons
+ * @module @superdangerous/app-framework/ui
  */
 
 export {
