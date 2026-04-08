@@ -240,9 +240,11 @@ export function useResizableColumns({
       const currentWidth = state.widths[columnKey] || DEFAULT_WIDTH;
       const config = getColumnConfig(columnKey);
       const minWidth = config?.minWidth || DEFAULT_MIN_WIDTH;
+      const maxWidth = config?.maxWidth;
       return {
         width: currentWidth,
-        minWidth: minWidth, // Use configured min width, not current width
+        minWidth,
+        ...(maxWidth ? { maxWidth } : {}),
         position: 'relative',
       };
     },

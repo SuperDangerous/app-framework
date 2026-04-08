@@ -152,17 +152,17 @@ export function AppLayout({
     });
 
   return (
-    <div className={cn("min-h-screen bg-background", className)}>
+    <div className={cn("min-h-screen min-w-[360px] bg-background", className)}>
       {/* Header */}
       <header className={headerClassName ?? "bg-black"}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className={cn("flex items-center", headerHeight)}>
             {/* Logo + version */}
-            <div className="flex items-center">
+            <div className="flex items-center shrink-0">
               <img
                 src={logoSrc}
                 alt="Logo"
-                className={cn(logoClassName, "mr-3")}
+                className={cn(logoClassName, "mr-3 shrink-0")}
                 style={logoOffset ? {
                   position: 'relative',
                   top: logoOffset.top ?? 0,
@@ -185,10 +185,10 @@ export function AppLayout({
 
             {/* Connection status — before spacer in inline mode, after in stacked */}
             {isInline && (
-              <div className="flex items-center ml-4">
+              <div className="flex items-center ml-4 overflow-hidden">
                 <ConnectionStatus
                   url={connectionStatusUrl}
-                  className="text-xs text-gray-400"
+                  className="text-xs text-gray-400 whitespace-nowrap"
                 />
               </div>
             )}
@@ -198,7 +198,7 @@ export function AppLayout({
 
             {/* Inline nav links (desktop only) — right-aligned */}
             {isInline && (
-              <div className="hidden md:flex items-center gap-1 mr-4">
+              <div className="hidden lg:flex items-center gap-1 mr-4">
                 {renderNavLinks(false)}
               </div>
             )}
@@ -226,7 +226,7 @@ export function AppLayout({
               )}
               {/* Mobile menu button */}
               <button
-                className="md:hidden p-2 text-white"
+                className="lg:hidden p-2 text-white"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
                 {mobileMenuOpen ? (
@@ -252,7 +252,7 @@ export function AppLayout({
         <nav className={navClassName ?? "bg-[#444444]"}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Desktop navigation */}
-            <div className={cn("hidden md:flex", isPill ? "gap-1 py-2" : "space-x-0")}>
+            <div className={cn("hidden lg:flex", isPill ? "gap-1 py-2" : "space-x-0")}>
               {renderNavLinks(false)}
             </div>
 

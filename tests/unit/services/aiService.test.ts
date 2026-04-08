@@ -356,12 +356,10 @@ describe('AIService', () => {
       expect(result.model).toBe('gpt-4');
     });
 
-    test('selects model for long content', () => {
-      const result = aiService.selectModel({ contentLength: 10000 });
-      
-      expect(result.provider).toBe('anthropic');
-      expect(result.model).toBe('claude-3-opus');
-      expect(result.reason).toContain('Long context');
+    test('throws for long content (Anthropic not implemented)', () => {
+      expect(() => aiService.selectModel({ contentLength: 10000 })).toThrow(
+        'The Anthropic provider is not yet implemented'
+      );
     });
 
     test('returns default model for general use', () => {

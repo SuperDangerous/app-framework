@@ -1,6 +1,6 @@
 # SuperDangerous App Framework
 
-A comprehensive, production-ready framework for building enterprise internal tools and applications with TypeScript, React, and real-time capabilities.
+A full-stack TypeScript framework for vibecoding enterprise web and desktop apps — 20+ UI components, WebSocket, Electron, and production services pre-wired.
 
 ## 📋 Documentation
 

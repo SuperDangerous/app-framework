@@ -193,7 +193,7 @@ describe('StandardServer', () => {
       servers.push(server);
       await server.initialize();
 
-      expect(onInitialize).toHaveBeenCalledWith(mockApp);
+      expect(onInitialize).toHaveBeenCalledWith(mockApp, expect.anything());
       expect(server['isInitialized']).toBe(true);
     });
 

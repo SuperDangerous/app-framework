@@ -1049,7 +1049,8 @@ import { LogViewer } from '@superdangerous/app-framework/ui';
 - `maxEntries` - Maximum number of entries to display (default: 1000)
 
 #### LogsPage
-A complete logs page with header and configured LogViewer.
+The standard app logs page.
+It uses the shared logs router contract and wraps `LogViewer` with summary cards, archive footprint, and maintenance actions so apps stop rebuilding their own support shell.
 
 ```typescript
 import { LogsPage } from '@superdangerous/app-framework/ui';
@@ -1060,6 +1061,12 @@ import { LogsPage } from '@superdangerous/app-framework/ui';
   description="Monitor application events"
 />
 ```
+
+Recommended portfolio pattern:
+
+- use `LogsPage` when the app follows the shared logs router contract
+- use `LogViewer` directly only when the app is intentionally building a different shell
+- promote better logs-shell ideas into the framework before reusing them across apps
 
 ### React Hooks
 

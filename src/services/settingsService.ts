@@ -73,7 +73,36 @@ export interface SettingsOptions {
   sensitiveFields?: string[];
 }
 
+interface SettingsEvents {
+  change: (event: { key: string; value: unknown; previous: unknown }) => void;
+  loaded: (settings: Record<string, unknown>) => void;
+  saved: (settings: Record<string, unknown>) => void;
+  reset: (categoryId?: string) => void;
+  "bulk-change": (
+    changes: Array<{ key: string; value: unknown; previous: unknown }>,
+  ) => void;
+  "save-error": (error: Error) => void;
+}
+
 export class SettingsService extends EventEmitter {
+  on<K extends keyof SettingsEvents>(event: K, listener: SettingsEvents[K]): this;
+  on(event: string, listener: (...args: any[]) => void): this;
+  on(event: string, listener: (...args: any[]) => void): this {
+    return super.on(event, listener);
+  }
+
+  emit<K extends keyof SettingsEvents>(event: K, ...args: Parameters<SettingsEvents[K]>): boolean;
+  emit(event: string, ...args: any[]): boolean;
+  emit(event: string, ...args: any[]): boolean {
+    return super.emit(event, ...args);
+  }
+
+  off<K extends keyof SettingsEvents>(event: K, listener: SettingsEvents[K]): this;
+  off(event: string, listener: (...args: any[]) => void): this;
+  off(event: string, listener: (...args: any[]) => void): this {
+    return super.off(event, listener);
+  }
+
   private categories: Map<string, SettingsCategory> = new Map();
   private settings: Record<string, any> = {};
   private storagePath?: string;
@@ -111,7 +140,7 @@ export class SettingsService extends EventEmitter {
    */
   async load(): Promise<void> {
     if (!this.storagePath) {
-      ensureLogger().info("No storage path configured, using defaults");
+      ensureLogger().warn("SettingsService: no storagePath configured — settings will not persist across restarts");
       return;
     }
 
@@ -147,7 +176,7 @@ export class SettingsService extends EventEmitter {
    */
   async save(): Promise<void> {
     if (!this.storagePath) {
-      ensureLogger().info("No storage path configured, skipping save");
+      ensureLogger().warn("SettingsService: no storagePath configured — settings not saved");
       return;
     }
 

@@ -452,6 +452,13 @@ export class AIService extends EventEmitter {
       case "mock":
         provider = new MockAIProvider(config);
         break;
+      case "anthropic":
+        throw new Error(
+          'The Anthropic provider is not yet implemented in this version of the framework. ' +
+          'Only "openai" and "mock" providers are currently supported. ' +
+          'To use Claude models, use the OpenAI-compatible API: ' +
+          'https://docs.anthropic.com/en/api/openai-sdk-compatibility'
+        );
       default:
         throw new Error(`Unknown provider: ${config.provider}`);
     }
@@ -689,11 +696,12 @@ export class AIService extends EventEmitter {
     }
 
     if (criteria.contentLength && criteria.contentLength > 8000) {
-      return {
-        provider: "anthropic",
-        model: "claude-3-opus",
-        reason: "Long context window needed",
-      };
+      throw new Error(
+        'The Anthropic provider is not yet implemented in this version of the framework. ' +
+        'Only "openai" and "mock" providers are currently supported. ' +
+        'To use Claude models, use the OpenAI-compatible API: ' +
+        'https://docs.anthropic.com/en/api/openai-sdk-compatibility'
+      );
     }
 
     return {

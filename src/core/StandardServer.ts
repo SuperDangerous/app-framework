@@ -203,14 +203,12 @@ export class StandardServer {
         );
       }
 
-      // Call custom initialization if provided, passing the WebSocket server
+      // Call custom initialization if provided, passing the WebSocket server.
+      // Always pass both arguments unconditionally — functions that only accept
+      // one param will ignore the second, and using .length to detect intent
+      // silently breaks when the caller uses default parameter values.
       if (this.config.onInitialize) {
-        const wantsWebSocket = this.config.onInitialize.length >= 2;
-        if (wantsWebSocket) {
-          await this.config.onInitialize(this.app, this.wsServer);
-        } else {
-          await this.config.onInitialize(this.app);
-        }
+        await this.config.onInitialize(this.app, this.wsServer);
       }
 
       // Setup error handlers (should be last)
@@ -342,7 +340,7 @@ export class StandardServer {
    */
   public async start(): Promise<void> {
     if (!this.isInitialized) {
-      throw new Error("Server not initialized. Call initialize() first.");
+      await this.initialize();
     }
 
     const port = this.config.port!;

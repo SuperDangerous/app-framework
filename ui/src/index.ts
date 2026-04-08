@@ -32,7 +32,7 @@ export { ProtectedRoute } from '../components/auth/ProtectedRoute';
 // Page components
 // Page wrappers (kept for compatibility). Prefer components: LogViewer, SettingsFramework
 export { LogsPage } from '../components/logs/LogsPage';
-export type { LogsPageProps } from '../components/logs/LogsPage';
+export type { LogsPageProps, LogsPageStats } from '../components/logs/LogsPage';
 export { SettingsPage } from './pages/SettingsPage';
 export type { SettingsPageProps } from './pages/SettingsPage';
 

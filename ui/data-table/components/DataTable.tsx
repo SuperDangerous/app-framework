@@ -67,7 +67,7 @@ export function DataTable<T>({
     const configs: ColumnSizeConfig[] = [];
 
     if (selectable) {
-      configs.push({ key: 'select', defaultWidth: 40, minWidth: 40 });
+      configs.push({ key: 'select', defaultWidth: 40, minWidth: 40, maxWidth: 40 });
     }
 
     columns.forEach((col) => {
@@ -80,7 +80,7 @@ export function DataTable<T>({
     });
 
     if (actionsColumn) {
-      configs.push({ key: 'actions', defaultWidth: actionsColumnWidth, minWidth: 60 });
+      configs.push({ key: 'actions', defaultWidth: actionsColumnWidth, minWidth: 48, maxWidth: actionsColumnWidth });
     }
 
     return configs;
@@ -138,6 +138,16 @@ export function DataTable<T>({
   });
 
   const pagination = externalPagination || internalPagination;
+
+  // Warn in development when data is silently ignored due to external pagination
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'production' && data.length > 0 && externalPagination) {
+      console.warn(
+        '[DataTable] The `data` prop is ignored when `pagination` is provided. ' +
+        'Pass your rows via `pagination.paginatedData` instead.'
+      );
+    }
+  }, [data, externalPagination]);
 
   // Header context menu state
   const [headerContextMenu, setHeaderContextMenu] = useState<{ x: number; y: number } | null>(null);
