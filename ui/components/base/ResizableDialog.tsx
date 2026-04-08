@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from './dialog';
 import { Button } from './button';
 import { Maximize2, Minimize2, X, GripVertical } from 'lucide-react';
 import { cn } from '../../src/utils/cn';
@@ -282,6 +282,7 @@ export function ResizableDialog({
                 <DialogTitle className="text-base font-semibold leading-tight truncate">
                   {title}
                 </DialogTitle>
+                <DialogDescription className="sr-only">Dialog content</DialogDescription>
               </DialogHeader>
             )}
             {titleExtra && (
