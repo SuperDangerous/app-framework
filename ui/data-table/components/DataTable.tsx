@@ -329,7 +329,7 @@ export function DataTable<T>({
         {/* Table with scroll container and border - supports both horizontal and vertical scroll with sticky header */}
         <div className="overflow-auto border rounded-lg h-full">
           <Table
-            style={{ ...getTableStyle(), width: tableWidthPx, minWidth: tableWidthPx }}
+            style={{ ...getTableStyle(), width: '100%', minWidth: tableWidthPx }}
             className={cn('resizable-table sticky-actions-table', className)}
           >
           <TableHeader className="sticky top-0 z-20 bg-muted">
@@ -378,6 +378,12 @@ export function DataTable<T>({
                 );
               })}
 
+              {/* Flexible spacer: absorbs leftover width (no fixed width) so the
+                  data columns keep their exact resized widths while the table
+                  still fills its container, and the sticky actions column stays
+                  pinned to the right edge instead of leaving a gap. */}
+              <TableHead aria-hidden className="data-table-spacer bg-muted p-0" />
+
               {/* Actions column header */}
               {actionsColumn && (
                 <TableHead
@@ -395,7 +401,7 @@ export function DataTable<T>({
             {loading ? (
               <TableRow>
                 <TableCell
-                  colSpan={columnOrder.length + (actionsColumn ? 1 : 0)}
+                  colSpan={columnOrder.length + (actionsColumn ? 1 : 0) + 1}
                   className="!p-0 h-32"
                 >
                   <div className="sticky left-0 w-screen max-w-full h-full bg-background flex justify-center items-center">
@@ -473,6 +479,9 @@ export function DataTable<T>({
                         </TableCell>
                       );
                     })}
+
+                    {/* Flexible spacer cell (matches the header spacer). */}
+                    <TableCell aria-hidden className="data-table-spacer p-0" />
 
                     {/* Actions cell */}
                     {actionsColumn && (

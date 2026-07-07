@@ -267,6 +267,18 @@
   position: relative !important;
 }
 
+/*
+ * Flexible spacer column: no fixed width, so under table-layout: fixed it soaks
+ * up any leftover width when the columns are narrower than the container (and
+ * collapses to 0 when they overflow). Keeps resized columns at their exact
+ * widths while the sticky actions column stays pinned to the right edge.
+ */
+.data-table-spacer {
+  width: auto !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+}
+
 .resize-handle {
   position: absolute !important;
   top: 0 !important;
