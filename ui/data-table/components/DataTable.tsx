@@ -1,4 +1,4 @@
-import { useMemo, useCallback, useState, useEffect } from 'react';
+import { useMemo, useCallback, useState, useEffect, useRef } from 'react';
 import {
   Table,
   TableBody,
@@ -106,6 +106,7 @@ export function DataTable<T>({
 
   // Initialize hooks
   const {
+    widths: columnWidths,
     getResizeHandleProps,
     getColumnStyle,
     getTableStyle,
@@ -217,6 +218,81 @@ export function DataTable<T>({
     return columns.find((col) => col.id === id);
   }, [columns]);
 
+  // Clamped pixel width for a single column (current resize state or default).
+  const getColumnWidthPx = useCallback((colKey: string): number => {
+    const config = columnSizeConfig.find((c) => c.key === colKey);
+    const current = columnWidths[colKey] ?? config?.defaultWidth ?? 150;
+    const minWidth = config?.minWidth ?? 80;
+    const maxWidth = config?.maxWidth;
+    return Math.max(minWidth, maxWidth ? Math.min(current, maxWidth) : current);
+  }, [columnSizeConfig, columnWidths]);
+
+  // Exact table width = sum of the widths of the columns that actually render.
+  // The resize hook's getTableStyle() only sets a min-width from ALL columns
+  // (including hidden ones); under table-layout: fixed that inflated min-width
+  // makes the browser stretch every visible column past its set width, so
+  // resizing appeared to do nothing. Summing only the visible columns and
+  // setting it as the table's explicit width keeps each column at its true
+  // width and lets the scroll container handle overflow.
+  const tableWidthPx = useMemo(() => {
+    let total = 0;
+    for (const colKey of columnOrder) {
+      if (colKey === 'select') {
+        if (selectable) total += getColumnWidthPx('select');
+        continue;
+      }
+      if (colKey === 'actions') {
+        if (actionsColumn) total += actionsColumnWidth;
+        continue;
+      }
+      if (!getColumnDef(colKey) || !columnVisibility.isColumnVisible(colKey)) continue;
+      total += getColumnWidthPx(colKey);
+    }
+    return total;
+  }, [columnOrder, selectable, actionsColumn, actionsColumnWidth, columnVisibility, getColumnDef, getColumnWidthPx]);
+
+  // The header cell is draggable (column reorder) AND hosts the resize handle.
+  // Pressing the handle would otherwise start a native column drag, which
+  // suppresses the pointermove events the resize needs. Track an active resize
+  // in a ref (set synchronously on pointerdown, before dragstart fires) and use
+  // it to veto the drag so the two gestures no longer fight.
+  const resizeActiveRef = useRef(false);
+  const beginResize = useCallback(() => {
+    resizeActiveRef.current = true;
+    const clear = () => {
+      resizeActiveRef.current = false;
+      window.removeEventListener('pointerup', clear);
+      window.removeEventListener('pointercancel', clear);
+    };
+    window.addEventListener('pointerup', clear);
+    window.addEventListener('pointercancel', clear);
+  }, []);
+
+  const getHeaderCellDragProps = useCallback((colKey: string) => {
+    const dragProps = getDragHandleProps(colKey);
+    return {
+      ...dragProps,
+      onDragStart: (event: React.DragEvent) => {
+        if (resizeActiveRef.current) {
+          event.preventDefault();
+          return;
+        }
+        dragProps.onDragStart?.(event);
+      },
+    };
+  }, [getDragHandleProps]);
+
+  const getResizeProps = useCallback((colKey: string) => {
+    const props = getResizeHandleProps(colKey);
+    return {
+      ...props,
+      onPointerDown: (event: React.PointerEvent) => {
+        beginResize();
+        props.onPointerDown?.(event);
+      },
+    };
+  }, [getResizeHandleProps, beginResize]);
+
   // Render header cell content
   const renderHeaderContent = useCallback((col: ColumnDef<T>) => {
     const headerProps = {
@@ -253,7 +329,7 @@ export function DataTable<T>({
         {/* Table with scroll container and border - supports both horizontal and vertical scroll with sticky header */}
         <div className="overflow-auto border rounded-lg h-full">
           <Table
-            style={getTableStyle()}
+            style={{ ...getTableStyle(), width: tableWidthPx, minWidth: tableWidthPx }}
             className={cn('resizable-table sticky-actions-table', className)}
           >
           <TableHeader className="sticky top-0 z-20 bg-muted">
@@ -289,7 +365,7 @@ export function DataTable<T>({
                   <TableHead
                     key={colKey}
                     style={getColumnStyle(colKey)}
-                    {...getDragHandleProps(colKey)}
+                    {...getHeaderCellDragProps(colKey)}
                     className={cn(
                       'cursor-grab relative',
                       dragState.draggedId === colKey && 'column-dragging opacity-50',
@@ -297,7 +373,7 @@ export function DataTable<T>({
                     )}
                   >
                     {renderHeaderContent(col)}
-                    <div {...getResizeHandleProps(colKey)} />
+                    <div {...getResizeProps(colKey)} />
                   </TableHead>
                 );
               })}

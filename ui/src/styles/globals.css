@@ -243,6 +243,26 @@
 }
 
 /* Column resize handles */
+/*
+ * Fixed layout makes the per-column width styles authoritative rather than mere
+ * minimums, so dragging a resize handle actually grows AND shrinks the column.
+ * DataTable sets an explicit table width from the visible columns, so the table
+ * still overflows into the horizontal scroll container when needed.
+ */
+.resizable-table {
+  table-layout: fixed;
+}
+
+/*
+ * Clip overflowing body content so a shrunk column doesn't spill into its
+ * neighbour. NOT applied to <th>: the header hosts the resize handle, which
+ * intentionally overhangs the column edge (right: -6px) and must not be clipped.
+ */
+.resizable-table td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .resizable-table th {
   position: relative !important;
 }

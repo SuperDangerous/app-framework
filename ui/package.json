@@ -1,6 +1,6 @@
 {
   "name": "@superdangerous/app-framework-ui-internal",
-  "version": "4.17.12",
+  "version": "4.17.16",
   "private": true,
   "description": "Internal UI workspace for @superdangerous/app-framework",
   "main": "dist/index.mjs",

@@ -1,7 +1,7 @@
 {
   "name": "@superdangerous/app-framework",
-  "version": "4.17.15",
-  "description": "Opinionated TypeScript framework for vibecoding enterprise web and desktop apps — 20+ UI components, WebSocket, Electron, and production services pre-wired",
+  "version": "4.17.16",
+  "description": "Opinionated TypeScript framework for vibecoding enterprise web and desktop apps \u2014 20+ UI components, WebSocket, Electron, and production services pre-wired",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
